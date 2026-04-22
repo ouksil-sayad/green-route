@@ -39,6 +39,7 @@ declare global {
   const Map: typeof import('lucide-react').Map
   const MapPin: typeof import('lucide-react').MapPin
   const MinusIcon: typeof import('lucide-react').MinusIcon
+  const Monitor: typeof import('lucide-react').Monitor
   const Moon: typeof import('lucide-react').Moon
   const MoreHorizontal: typeof import('lucide-react').MoreHorizontal
   const MoreHorizontalIcon: typeof import('lucide-react').MoreHorizontalIcon
@@ -51,6 +52,7 @@ declare global {
   const Section: typeof import('lucide-react').Section
   const Sheet: typeof import('lucide-react').Sheet
   const Sidebar: typeof import('lucide-react').Sidebar
+  const Split: typeof import('lucide-react').Split
   const Sun: typeof import('lucide-react').Sun
   const Suspense: typeof import('react').Suspense
   const Table: typeof import('lucide-react').Table

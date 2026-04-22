@@ -112,10 +112,12 @@ export default function Results() {
     <div
       data-cmp="Results"
       style={{
-        minHeight: "100vh",
+        height: "100vh",
+        width: "100%",
         background: "var(--background)",
         display: "flex",
         flexDirection: "column",
+        overflow: "hidden",
       }}
     >
       {/* Header */}
@@ -130,9 +132,11 @@ export default function Results() {
           alignItems: "center",
           justifyContent: "space-between",
           padding: "0 24px",
-          position: "sticky",
+          position: "fixed",
           top: 0,
-          zIndex: 200,
+          left: 0,
+          right: 0,
+          zIndex: 1100,
           flexShrink: 0,
         }}
       >
@@ -219,6 +223,7 @@ export default function Results() {
             justifyContent: "center",
             gap: "24px",
             padding: "40px",
+            paddingTop: "100px", // Extra padding for fixed header
           }}
         >
           {/* Spinner */}
@@ -297,13 +302,15 @@ export default function Results() {
       {/* Results Content */}
       {!loading && (
         <div
+          className="content-wrapper results-layout"
           style={{
-            flex: 1,
+            height: "calc(100vh - 60px)",
+            width: "100%",
             display: "flex",
             flexDirection: "row",
-            minHeight: 0,
+            marginTop: "60px",
+            overflow: "hidden",
           }}
-          className="results-layout"
         >
           {/* Left: Route Details */}
           <div
@@ -617,14 +624,40 @@ export default function Results() {
       {/* Mobile styles */}
       <style>{`
         @media (max-width: 768px) {
+          [data-cmp="Results"] {
+            height: auto !important;
+            overflow: visible !important;
+          }
+          .content-wrapper {
+            height: auto !important;
+            overflow: visible !important;
+          }
           .results-layout {
             flex-direction: column !important;
+            height: auto !important;
+            overflow: visible !important;
+            padding: 16px !important;
+            gap: 16px !important;
           }
           .results-layout > div:first-child {
             width: 100% !important;
-            border-right: none !important;
-            border-bottom: 1px solid var(--border);
-            max-height: 55vh;
+            height: auto !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 20px !important;
+            max-height: none !important;
+            flex-shrink: 0;
+            overflow: visible !important;
+            background: var(--card) !important;
+          }
+          .results-layout > div:last-child {
+            width: 100% !important;
+            height: 450px !important;
+            min-height: 450px !important;
+            flex-shrink: 0;
+            margin: 0 !important;
+            border-radius: 20px !important;
+            overflow: hidden !important;
+            border: 1px solid var(--border) !important;
           }
         }
       `}</style>

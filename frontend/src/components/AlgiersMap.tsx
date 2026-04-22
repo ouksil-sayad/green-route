@@ -36,9 +36,15 @@ export default function AlgiersMap({
     const L = window.L;
     if (!L) return;
 
+    const algiersCenter: [number, number] = [36.75, 3.06];
     const map = L.map(mapContainerRef.current, {
-      center: [36.7372, 3.0560],
+      center: algiersCenter,
       zoom: 13,
+      minZoom: 12,
+      maxBounds: [
+        [36.65, 2.90], // Southwest
+        [36.85, 3.25]  // Northeast
+      ],
       zoomControl: true,
     });
 

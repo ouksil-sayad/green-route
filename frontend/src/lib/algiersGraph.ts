@@ -144,9 +144,9 @@ export function findOptimalRoute(
 
   // Normalize weights
   const total = timeWeight + costWeight + co2Weight;
-  const wT = timeWeight / total;
-  const wC = costWeight / total;
-  const wE = co2Weight / total;
+  const wT = total > 0 ? timeWeight / total : 1/3;
+  const wC = total > 0 ? costWeight / total : 1/3;
+  const wE = total > 0 ? co2Weight / total : 1/3;
 
   // Normalize edge costs to 0-1 range
   const maxTime = 60;

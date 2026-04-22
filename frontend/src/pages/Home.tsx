@@ -14,9 +14,9 @@ export default function Home() {
   const [startNode, setStartNode] = useState<GraphNode | null>(null);
   const [endNode, setEndNode] = useState<GraphNode | null>(null);
   const [selectMode, setSelectMode] = useState<"start" | "end">("start");
-  const [timeWeight, setTimeWeight] = useState(12);
-  const [costWeight, setCostWeight] = useState(400);
-  const [co2Weight, setCO2Weight] = useState(150);
+  const [timeWeight, setTimeWeight] = useState(33);
+  const [costWeight, setCostWeight] = useState(33);
+  const [co2Weight, setCO2Weight] = useState(34);
   const [previewRoute, setPreviewRoute] = useState<RouteResult | null>(null);
 
   // Monitor nodes
@@ -57,9 +57,9 @@ export default function Home() {
   };
 
   const handlePreset = (preset: "fastest" | "cheapest" | "greenest") => {
-    if (preset === "fastest") { setTimeWeight(2); setCostWeight(500); setCO2Weight(300); }
-    if (preset === "cheapest") { setTimeWeight(20); setCostWeight(50); setCO2Weight(300); }
-    if (preset === "greenest") { setTimeWeight(18); setCostWeight(400); setCO2Weight(10); }
+    if (preset === "fastest") { setTimeWeight(80); setCostWeight(10); setCO2Weight(10); }
+    if (preset === "cheapest") { setTimeWeight(10); setCostWeight(80); setCO2Weight(10); }
+    if (preset === "greenest") { setTimeWeight(10); setCostWeight(10); setCO2Weight(80); }
     toast.info(`${preset.charAt(0).toUpperCase() + preset.slice(1)} preset applied`);
   };
 
@@ -93,11 +93,12 @@ export default function Home() {
     <div
       data-cmp="Home"
       style={{
-        minHeight: "100vh",
+        height: "100vh",
         width: "100%",
         background: "var(--background)",
         display: "flex",
         flexDirection: "column",
+        overflow: "hidden",
       }}
     >
       {/* Header */}
@@ -112,9 +113,11 @@ export default function Home() {
           alignItems: "center",
           justifyContent: "space-between",
           padding: "0 24px",
-          position: "sticky",
+          position: "fixed",
           top: 0,
-          zIndex: 200,
+          left: 0,
+          right: 0,
+          zIndex: 1100,
           flexShrink: 0,
         }}
       >
@@ -178,18 +181,17 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Main Content */}
       <div
+        className="content-wrapper"
         style={{
-          flex: 1,
+          height: "calc(100vh - 60px)",
+          width: "100%",
           display: "flex",
           flexDirection: "row",
-          minHeight: 0,
+          marginTop: "60px",
+          overflow: "hidden",
         }}
       >
-        <div style={{ position: "fixed", top: 10, left: "50%", transform: "translateX(-50%)", zIndex: 9999, background: "rgba(0,0,0,0.9)", padding: "4px 16px", borderRadius: "8px", border: "1px solid var(--neon)", color: "var(--neon)", fontSize: "11px", fontWeight: 700, boxShadow: "0 0 20px rgba(0,212,200,0.3)", pointerEvents: "none" }}>
-          DEBUG: S={startNode?.id ?? "null"} | E={endNode?.id ?? "null"} | M={selectMode}
-        </div>
         <div className="main-layout" style={{ 
           flex: 1, 
           display: "flex", 
@@ -348,27 +350,43 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Global Map Styles */}
       <style>{`
         @media (max-width: 782px) {
+          [data-cmp="Home"] {
+            height: auto !important;
+            overflow: visible !important;
+          }
+          .content-wrapper {
+            height: auto !important;
+            overflow: visible !important;
+          }
           .main-layout {
             flex-direction: column !important;
             height: auto !important;
-            min-height: 100vh !important;
-            overflow-y: auto !important;
+            overflow: visible !important;
+            padding: 16px !important;
+            gap: 16px !important;
           }
           .main-layout > div:first-child {
             width: 100% !important;
-            border-right: none !important;
-            border-bottom: 1px solid var(--border);
+            height: auto !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 20px !important;
             max-height: none !important;
             flex-shrink: 0;
+            overflow: visible !important;
+            background: var(--card) !important;
           }
           .main-layout > div:last-child {
+            width: 100% !important;
             height: 450px !important;
             min-height: 450px !important;
             flex-shrink: 0;
-            margin-top: 10px;
+            margin: 0 !important;
+            padding: 0 !important;
+            border-radius: 20px !important;
+            overflow: hidden !important;
+            border: 1px solid var(--border) !important;
           }
         }
       `}</style>

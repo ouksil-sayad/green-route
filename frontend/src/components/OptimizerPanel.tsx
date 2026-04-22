@@ -20,29 +20,28 @@ interface OptimizerPanelProps {
   onPreset?: (preset: "fastest" | "cheapest" | "greenest") => void;
 }
 
-interface SliderProps {
+
+interface PrioritySliderProps {
   icon: React.ReactNode;
   label: string;
   value: number;
-  min: number;
-  max: number;
-  unit: string;
   color: string;
+  isSaved: boolean;
+  onSave: () => void;
   onChange: (v: number) => void;
+  disabled?: boolean;
 }
 
-function PrioritySlider({ icon, label, value, min, max, unit, color, onChange }: SliderProps) {
+function PrioritySlider({ icon, label, value, color, isSaved, onSave, onChange, disabled }: PrioritySliderProps) {
   const { theme } = useTheme();
-  const pct = ((value - min) / (max - min)) * 100;
   const isLight = theme === "light";
-
   const trackBg = isLight ? "var(--slider-track)" : "var(--accent)";
   const activeTrack = isLight 
     ? `linear-gradient(to right, ${color}cc, ${color})`
     : `linear-gradient(to right, ${color}88, ${color})`;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "10px", opacity: disabled ? 0.6 : 1 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <div
@@ -62,19 +61,40 @@ function PrioritySlider({ icon, label, value, min, max, unit, color, onChange }:
           </div>
           <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)" }}>{label}</span>
         </div>
-        <span
-          style={{
-            fontSize: "13px",
-            fontWeight: 700,
-            color: isLight ? "var(--foreground)" : color,
-            background: isLight ? "var(--surface-3)" : `${color}15`,
-            padding: "2px 10px",
-            borderRadius: "999px",
-            border: `1px solid ${isLight ? "var(--border)" : `${color}30`}`,
-          }}
-        >
-          {value} {unit}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span
+            style={{
+              fontSize: "12px",
+              fontWeight: 800,
+              color: isLight ? "var(--foreground)" : color,
+              background: isLight ? "var(--surface-3)" : `${color}15`,
+              padding: "2px 8px",
+              borderRadius: "999px",
+              border: `1px solid ${isLight ? "var(--border)" : `${color}30`}`,
+              minWidth: "45px",
+              textAlign: "center"
+            }}
+          >
+            {Math.round(value)}%
+          </span>
+          <button
+            onClick={onSave}
+            style={{
+              padding: "4px 10px",
+              borderRadius: "6px",
+              fontSize: "10px",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+              background: isSaved ? "var(--neon)" : "var(--surface-3)",
+              border: `1px solid ${isSaved ? "var(--neon)" : "var(--border)"}`,
+              color: isSaved ? "var(--background)" : "var(--muted-foreground)",
+            }}
+          >
+            {isSaved ? "Saved" : "Save"}
+          </button>
+        </div>
       </div>
       <div style={{ position: "relative", height: "20px", display: "flex", alignItems: "center" }}>
         <div
@@ -90,7 +110,7 @@ function PrioritySlider({ icon, label, value, min, max, unit, color, onChange }:
         >
           <div
             style={{
-              width: `${pct}%`,
+              width: `${value}%`,
               height: "100%",
               background: activeTrack,
               borderRadius: "2px",
@@ -100,9 +120,11 @@ function PrioritySlider({ icon, label, value, min, max, unit, color, onChange }:
         </div>
         <input
           type="range"
-          min={min}
-          max={max}
+          min={0}
+          max={100}
+          step={1}
           value={value}
+          disabled={disabled || isSaved}
           onChange={e => onChange(Number(e.target.value))}
           style={{
             position: "relative",
@@ -110,7 +132,7 @@ function PrioritySlider({ icon, label, value, min, max, unit, color, onChange }:
             height: "20px",
             appearance: "none",
             background: "transparent",
-            cursor: "pointer",
+            cursor: isSaved ? "not-allowed" : "pointer",
             zIndex: 1,
           }}
           className="slider-thumb-neon"
@@ -123,9 +145,9 @@ function PrioritySlider({ icon, label, value, min, max, unit, color, onChange }:
 export default function OptimizerPanel({
   startNode = null,
   endNode = null,
-  timeWeight = 12,
-  costWeight = 400,
-  co2Weight = 150,
+  timeWeight = 33,
+  costWeight = 33,
+  co2Weight = 34,
   selectMode = "start",
   onTimeWeight = () => {},
   onCostWeight = () => {},
@@ -138,6 +160,56 @@ export default function OptimizerPanel({
   const { theme } = useTheme();
   const isLight = theme === "light";
   const canFindRoute = startNode !== null && endNode !== null;
+
+  const [saved, setSaved] = React.useState({ time: false, cost: false, co2: false });
+
+  const handleWeightChange = (type: "time" | "cost" | "co2", newValue: number) => {
+    // Determine which weights are locked/saved
+    const keys: ("time" | "cost" | "co2")[] = ["time", "cost", "co2"];
+    const otherKeys = keys.filter(k => k !== type);
+    const lockedKeys = otherKeys.filter(k => saved[k]);
+    const unlockedKeys = otherKeys.filter(k => !saved[k]);
+
+    // Current values
+    const currentWeights = { time: timeWeight, cost: costWeight, co2: co2Weight };
+    
+    // Total of locked weights
+    const lockedTotal = lockedKeys.reduce((sum, k) => sum + currentWeights[k], 0);
+    
+    // Max allowed for the moving slider
+    const maxValue = 100 - lockedTotal;
+    const clampedValue = Math.min(newValue, maxValue);
+
+    // Remaining to distribute among unlocked
+    const remaining = 100 - lockedTotal - clampedValue;
+
+    // Distribute remaining among unlocked other keys
+    const updates: any = { [type]: clampedValue };
+    
+    if (unlockedKeys.length === 2) {
+      // Split remaining equally
+      updates[unlockedKeys[0]] = remaining / 2;
+      updates[unlockedKeys[1]] = remaining / 2;
+    } else if (unlockedKeys.length === 1) {
+      updates[unlockedKeys[0]] = remaining;
+    }
+    // If 0 unlocked, we can't really move the slider (handled by disabled/max)
+
+    if (updates.time !== undefined) onTimeWeight(updates.time);
+    if (updates.cost !== undefined) onCostWeight(updates.cost);
+    if (updates.co2 !== undefined) onCO2Weight(updates.co2);
+  };
+
+  const toggleSave = (type: "time" | "cost" | "co2") => {
+    setSaved(prev => ({ ...prev, [type]: !prev[type] }));
+  };
+
+  const handleReset = () => {
+    setSaved({ time: false, cost: false, co2: false });
+    onTimeWeight(0);
+    onCostWeight(0);
+    onCO2Weight(0);
+  };
 
   return (
     <div
@@ -165,9 +237,6 @@ export default function OptimizerPanel({
           <p style={{ fontSize: "12px", color: "var(--muted-foreground)", margin: "4px 0 0 0" }}>
             Click a card, then tap the map to set location
           </p>
-          <div style={{ fontSize: "10px", color: "var(--neon)", marginTop: "4px", fontWeight: 800 }}>
-            DEBUG: S={startNode?.id ?? "null"} | E={endNode?.id ?? "null"} | M={selectMode}
-          </div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -178,7 +247,6 @@ export default function OptimizerPanel({
             onClick={() => onSelectModeChange("start")}
           />
 
-          {/* Swap button */}
           <div style={{ display: "flex", justifyContent: "center" }}>
             <button
               onClick={onSwap}
@@ -219,151 +287,64 @@ export default function OptimizerPanel({
           padding: "20px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "16px" }}>
-          <div>
-            <h3 style={{ fontSize: "15px", fontWeight: 700, color: "var(--foreground)", margin: 0 }}>
-              Drag to adjust priorities
-            </h3>
-          </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+          <h3 style={{ fontSize: "15px", fontWeight: 700, color: "var(--foreground)", margin: 0 }}>
+            Drag to adjust priorities
+          </h3>
+          <button
+            onClick={handleReset}
+            style={{
+              padding: "4px 12px",
+              borderRadius: "8px",
+              background: "var(--surface-3)",
+              border: "1px solid var(--border)",
+              color: "var(--destructive)",
+              fontSize: "11px",
+              fontWeight: 700,
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}
+          >
+            Reset
+          </button>
         </div>
 
-          {/* Unified Time Priority Slider & Inputs */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <div
-                  style={{
-                    width: "28px",
-                    height: "28px",
-                    borderRadius: "8px",
-                    background: isLight ? "var(--surface-3)" : `var(--neon-dim)`,
-                    border: `1px solid ${isLight ? "var(--border)" : `var(--neon)`}44`,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: isLight ? "var(--muted-foreground)" : "var(--neon)",
-                  }}
-                >
-                  <Clock size={13} />
-                </div>
-                <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)" }}>Time Priority</span>
-              </div>
-              
-              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                <input
-                  type="number"
-                  min={0}
-                  max={24}
-                  value={Math.floor(timeWeight)}
-                  onChange={(e) => onTimeWeight(Number(e.target.value) + (timeWeight % 1))}
-                  style={{
-                    width: "40px",
-                    textAlign: "center",
-                    fontSize: "12px",
-                    fontWeight: 700,
-                    color: isLight ? "var(--foreground)" : "var(--neon)",
-                    background: isLight ? "var(--surface-3)" : "rgba(0,212,200,0.15)",
-                    padding: "2px 0",
-                    borderRadius: "6px",
-                    border: `1px solid ${isLight ? "var(--border)" : "rgba(0,212,200,0.3)"}`,
-                    outline: "none",
-                  }}
-                />
-                <span style={{ fontSize: "11px", color: "var(--muted-foreground)" }}>h</span>
-                <input
-                  type="number"
-                  min={0}
-                  max={59}
-                  value={Math.round((timeWeight % 1) * 60)}
-                  onChange={(e) => onTimeWeight(Math.floor(timeWeight) + (Number(e.target.value) / 60))}
-                  style={{
-                    width: "40px",
-                    textAlign: "center",
-                    fontSize: "12px",
-                    fontWeight: 700,
-                    color: isLight ? "var(--foreground)" : "var(--neon)",
-                    background: isLight ? "var(--surface-3)" : "rgba(0,212,200,0.15)",
-                    padding: "2px 0",
-                    borderRadius: "6px",
-                    border: `1px solid ${isLight ? "var(--border)" : "rgba(0,212,200,0.3)"}`,
-                    outline: "none",
-                  }}
-                />
-                <span style={{ fontSize: "11px", color: "var(--muted-foreground)" }}>min</span>
-              </div>
-            </div>
-
-            <div style={{ position: "relative", height: "20px", display: "flex", alignItems: "center" }}>
-              <div
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  right: 0,
-                  height: "4px",
-                  borderRadius: "2px",
-                  background: isLight ? "var(--slider-track)" : "var(--accent)",
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    width: `${(timeWeight / 24) * 100}%`,
-                    height: "100%",
-                    background: isLight 
-                      ? `linear-gradient(to right, var(--neon)cc, var(--neon))`
-                      : `linear-gradient(to right, var(--neon)88, var(--neon))`,
-                    borderRadius: "2px",
-                    transition: "width 0.1s ease",
-                  }}
-                />
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={24}
-                step={1/60}
-                value={timeWeight}
-                onChange={e => onTimeWeight(Number(e.target.value))}
-                style={{
-                  position: "relative",
-                  width: "100%",
-                  height: "20px",
-                  appearance: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                  zIndex: 1,
-                }}
-                className="slider-thumb-neon"
-              />
-            </div>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           <PrioritySlider
-            icon={<DollarSign size={13} style={{ color: "#f59e0b" }} />}
-            label="Cost"
-            value={costWeight}
-            min={0}
-            max={1000}
-            unit="DZD"
-            color="#f59e0b"
-            onChange={onCostWeight}
+            icon={<Clock size={13} />}
+            label="Time Priority"
+            value={timeWeight}
+            color="var(--neon)"
+            isSaved={saved.time}
+            onSave={() => toggleSave("time")}
+            onChange={v => handleWeightChange("time", v)}
+            disabled={saved.cost && saved.co2}
           />
           <PrioritySlider
-            icon={<Leaf size={13} style={{ color: "#10b981" }} />}
+            icon={<DollarSign size={13} />}
+            label="Cost"
+            value={costWeight}
+            color="#f59e0b"
+            isSaved={saved.cost}
+            onSave={() => toggleSave("cost")}
+            onChange={v => handleWeightChange("cost", v)}
+            disabled={saved.time && saved.co2}
+          />
+          <PrioritySlider
+            icon={<Leaf size={13} />}
             label="CO₂"
             value={co2Weight}
-            min={0}
-            max={500}
-            unit="g"
             color="#10b981"
-            onChange={onCO2Weight}
+            isSaved={saved.co2}
+            onSave={() => toggleSave("co2")}
+            onChange={v => handleWeightChange("co2", v)}
+            disabled={saved.time && saved.cost}
           />
         </div>
 
         {/* Presets */}
-        <div style={{ marginTop: "18px" }}>
-          <p style={{ fontSize: "11px", color: "var(--muted-foreground)", marginBottom: "10px", fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+        <div style={{ marginTop: "24px" }}>
+          <p style={{ fontSize: "11px", color: "var(--muted-foreground)", marginBottom: "12px", fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
             Presets
           </p>
           <div style={{ display: "flex", gap: "8px" }}>
@@ -374,10 +355,13 @@ export default function OptimizerPanel({
             ].map(p => (
               <button
                 key={p.key}
-                onClick={() => onPreset(p.key)}
+                onClick={() => {
+                  setSaved({ time: false, cost: false, co2: false });
+                  onPreset(p.key);
+                }}
                 style={{
                   flex: 1,
-                  padding: "8px 4px",
+                  padding: "10px 4px",
                   borderRadius: "0.75rem",
                   background: isLight ? p.pastel : "var(--surface-3)",
                   border: `1px solid ${isLight ? "transparent" : "var(--border)"}`,
@@ -387,7 +371,7 @@ export default function OptimizerPanel({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "5px",
+                  gap: "6px",
                   transition: "all 0.2s ease",
                   color: isLight ? "var(--muted-foreground)" : p.color,
                 }}
@@ -406,7 +390,7 @@ export default function OptimizerPanel({
           onClick={canFindRoute ? onFindRoute : undefined}
           style={{
             width: "100%",
-            marginTop: "16px",
+            marginTop: "20px",
             padding: "14px",
             borderRadius: "0.875rem",
             background: canFindRoute
