@@ -32,6 +32,7 @@ declare global {
   const Fragment: typeof import('react').Fragment
   const GripVerticalIcon: typeof import('lucide-react').GripVerticalIcon
   const Home: typeof import('lucide-react').Home
+  const Image: typeof import('lucide-react').Image
   const Infinity: typeof import('lucide-react').Infinity
   const InfoIcon: typeof import('lucide-react').InfoIcon
   const Leaf: typeof import('lucide-react').Leaf
@@ -56,6 +57,7 @@ declare global {
   const Sun: typeof import('lucide-react').Sun
   const Suspense: typeof import('react').Suspense
   const Table: typeof import('lucide-react').Table
+  const Text: typeof import('lucide-react').Text
   const Train: typeof import('lucide-react').Train
   const TrendingDown: typeof import('lucide-react').TrendingDown
   const TriangleAlertIcon: typeof import('lucide-react').TriangleAlertIcon

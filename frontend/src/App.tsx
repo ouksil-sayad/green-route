@@ -62,13 +62,15 @@ class ErrorBoundary extends React.Component<
 }
 
 import { ThemeProvider } from "./components/theme-provider";
+import Landing from "./pages/Landing";
 
 const App = () => (
   <BrowserRouter>
     <ThemeProvider defaultTheme="dark" storageKey="algier-route-theme">
       <ErrorBoundary>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/main" element={<Home />} />
           <Route path="/results" element={<Results />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

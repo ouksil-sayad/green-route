@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, DollarSign, MapPin, ChevronRight, Sun, Moon } from "lucide-react";
+import { Clock, DollarSign, ChevronRight, Sun, Moon } from "lucide-react";
 import { useTheme } from "../hooks/use-theme";
+import logoImg from "../../assests/logo.png";
 import AlgiersMap from "../components/AlgiersMap";
 import OptimizerPanel from "../components/OptimizerPanel";
 import MetricCard from "../components/MetricCard";
@@ -121,20 +122,21 @@ export default function Home() {
           flexShrink: 0,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div 
+          onClick={() => navigate("/")}
+          style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }}
+        >
           <div
             style={{
-              width: "32px",
-              height: "32px",
-              borderRadius: "8px",
-              background: "linear-gradient(135deg, var(--primary), var(--neon-blue))",
+              height: "50px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
+              overflow: "hidden",
             }}
           >
-            <MapPin size={16} style={{ color: "var(--background)" }} />
+            <img src={logoImg} alt="Logo" style={{ height: "100%", width: "auto", objectFit: "contain" }} />
           </div>
           <div>
             <div style={{ fontSize: "15px", fontWeight: 800, color: "var(--neon)", letterSpacing: "-0.01em" }}>
