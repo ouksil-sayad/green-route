@@ -7,7 +7,7 @@ import AlgiersMap from "../components/AlgiersMap";
 import OptimizerPanel from "../components/OptimizerPanel";
 import MetricCard from "../components/MetricCard";
 import { ALGIERS_NODES, GraphNode, RouteResult, setAlgiersNodes, mapBackendToFrontend } from "../lib/algiersGraph";
-import { fetchRoute, fetchNodes } from "../api/api";
+import { fetchRoute, fetchNodes, ApiRouteRequest } from "../api/api";
 import { toast } from "sonner";
 import NodePicker from "../components/NodePicker";
 
@@ -32,22 +32,33 @@ export default function Home() {
   useEffect(() => {
     const loadNodes = async () => {
       setNodesLoading(true);
-      const fetchedNodes = await fetchNodes();
-      if (fetchedNodes && fetchedNodes.length > 0) {
-        const mappedNodes: GraphNode[] = fetchedNodes.map((n: any) => ({
-          id: n.id,
-          name: n.name,
-          lat: n.lat,
-          lng: n.lon,
-          type: n.mode === "Walk" ? "transit" : (n.mode === "Bus" ? "transit" : "hub"),
-          mode: n.mode,
-          stop_id: n.stop_id
-        }));
-        setAlgiersNodes(mappedNodes);
-        setNodes(mappedNodes);
-        console.log(`Loaded ${mappedNodes.length} nodes from backend`);
+      try {
+        const fetchedNodes = await fetchNodes();
+        if (fetchedNodes && fetchedNodes.length > 0) {
+          const mappedNodes: GraphNode[] = fetchedNodes.map((n: any) => ({
+            id: n.id,
+            name: n.name,
+            lat: n.lat,
+            lng: n.lon,
+            type: n.mode === "Walk" ? "transit" : (n.mode === "Bus" ? "transit" : "hub"),
+            mode: n.mode,
+            stop_id: n.stop_id
+          }));
+          setAlgiersNodes(mappedNodes);
+          setNodes(mappedNodes);
+          console.log(`Successfully loaded ${mappedNodes.length} nodes from backend`);
+        } else {
+          console.warn("No nodes returned from backend");
+          toast.error("Network network is empty. Please check backend connection.");
+        }
+      } catch (error) {
+        console.error("Critical error loading nodes:", error);
+        toast.error("Failed to load transport network. Please ensure the backend is running.");
+        // We do NOT set nodes to empty or fallback here, 
+        // they will stay as the initial 3 nodes but the user will see the error.
+      } finally {
+        setNodesLoading(false);
       }
-      setNodesLoading(false);
     };
     loadNodes();
   }, []);
@@ -125,13 +136,11 @@ export default function Home() {
     
     setLoading(true);
 
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
-
     const normalizedTimeWeight = timeWeight > 1 ? timeWeight / 100 : timeWeight;
     const normalizedCostWeight = costWeight > 1 ? costWeight / 100 : costWeight;
     const normalizedCo2Weight = co2Weight > 1 ? co2Weight / 100 : co2Weight;
 
-    const payload = {
+    const payload: ApiRouteRequest = {
       start: startNode.id,
       end: endNode.id,
       weights: {
@@ -141,31 +150,20 @@ export default function Home() {
       }
     };
 
-    console.log("API_BASE_URL:", API_BASE_URL);
-    console.log("route request payload:", payload);
+    console.log("Routing request payload:", payload);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/route`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      });
+      const data = await fetchRoute(payload);
+      console.log("Routing response:", data);
 
-      console.log("route response status:", response.status);
-      
-      const data = await response.json();
-      console.log("route response json:", data);
-
-      if (!response.ok) {
-        toast.error(data.message || "Failed to fetch route");
+      if (data.success === false) {
+        toast.error(data.error || "No route found between these locations.");
         setLoading(false);
         return;
       }
 
-      if (data.success === false) {
-        toast.error(data.error || "No route found between these locations.");
+      if (!data.route) {
+        toast.error("No route data returned from server.");
         setLoading(false);
         return;
       }
@@ -198,6 +196,7 @@ export default function Home() {
       setLoading(false);
     }
   };
+
 
   return (
     <div

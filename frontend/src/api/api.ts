@@ -1,4 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+console.log("API_BASE_URL", API_BASE_URL);
 
 export interface ApiRouteRequest {
   start: string | number;
@@ -45,14 +46,17 @@ export const fetchRoute = async (data: ApiRouteRequest): Promise<ApiRouteRespons
 
 export const fetchNodes = async () => {
   try {
+    console.log("Fetching nodes from", `${API_BASE_URL}/api/nodes`);
     const response = await fetch(`${API_BASE_URL}/api/nodes`);
-    const data = await response.json();
-    if (data.status === "ok") {
-      return data.nodes;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-    return [];
+    const data = await response.json();
+    console.log("Loaded nodes count", data.nodes?.length);
+    return data.nodes || [];
   } catch (error) {
-    console.error("Failed to fetch nodes:", error);
-    return [];
+    console.error("Failed to fetch nodes from /api/nodes:", error);
+    throw error; // Rethrow to handle in the component
   }
 };
+
