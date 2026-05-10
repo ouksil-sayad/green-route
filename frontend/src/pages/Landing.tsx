@@ -294,12 +294,12 @@ export default function Landing() {
           <h1
             className="fade-in-up-2"
             style={{
-              fontSize: "72px",
+              fontSize: "clamp(48px, 8vw, 72px)",
               fontWeight: 700,
               color: "#0f172a",
               lineHeight: 1.1,
-              marginBottom: "32px",
-              letterSpacing: "0px",
+              marginBottom: "24px",
+              letterSpacing: "-1px",
             }}
           >
             Algiers <br />Route

@@ -7,7 +7,7 @@ import {
 import { useTheme } from "../hooks/use-theme";
 import AlgiersMap from "../components/AlgiersMap";
 import MetricCard from "../components/MetricCard";
-import { GraphNode, RouteResult, RouteStep } from "../lib/algiersGraph";
+import { GraphNode, RouteResult, RouteStep, MODE_COLORS, normalizeMode, getDisplayMode } from "../lib/algiersGraph";
 
 
 declare global {
@@ -21,28 +21,30 @@ interface LocationState {
   timeWeight: number;
   costWeight: number;
   co2Weight: number;
+  nodes?: GraphNode[];
 }
 
 function TransportIcon({ type }: { type: RouteStep["transport"] }) {
   const size = 14;
-  if (type === "bus") return <Bus size={size} />;
-  if (type === "metro") return <Train size={size} />;
-  if (type === "taxi") return <Car size={size} />;
+  const mode = normalizeMode(type) as string;
+  if (mode === "bus") return <Bus size={size} />;
+  if (mode === "tram" || mode === "metro") return <Train size={size} />;
+  if (mode === "taxi") return <Car size={size} />;
   return <Footprints size={size} />;
 }
 
 function transportColor(type: RouteStep["transport"]): string {
-  if (type === "bus") return "#3b82f6";
-  if (type === "metro") return "var(--neon)";
-  if (type === "taxi") return "#f59e0b";
-  return "#10b981";
+  const mode = normalizeMode(type);
+  return (MODE_COLORS as any)[mode] || MODE_COLORS.default;
 }
 
 function transportLabel(type: RouteStep["transport"], line?: string): string {
-  if (type === "bus") return `Bus ${line ?? ""}`;
-  if (type === "metro") return `Metro ${line ?? ""}`;
-  if (type === "taxi") return "Taxi";
-  return "Walk";
+  const mode = normalizeMode(type);
+  if (mode === "bus") return `Bus ${line ?? ""}`;
+  if (mode === "metro") return `Metro ${line ?? ""}`;
+  if (mode === "tram") return `Tram ${line ?? ""}`;
+  if (mode === "walk") return "Walk";
+  return String(type);
 }
 
 export default function Results() {
@@ -57,6 +59,16 @@ export default function Results() {
 
   useEffect(() => {
     console.log("Results page loaded, state:", state);
+    if (state?.result?.segments) {
+      console.log("segments debug:", state.result.segments.map(s => ({
+        from: s.from,
+        to: s.to,
+        mode: s.mode,
+        money: s.money,
+        co2: s.co2,
+        displayMode: getDisplayMode(s)
+      })));
+    }
     const timer = setTimeout(() => {
       setLoading(false);
       if (state?.result?.steps?.length) {
@@ -106,19 +118,12 @@ export default function Results() {
     );
   }
 
-  const { startNode, endNode, result } = state;
+  const { startNode, endNode, result, nodes } = state;
 
   return (
     <div
       data-cmp="Results"
-      style={{
-        height: "100vh",
-        width: "100%",
-        background: "var(--background)",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-      }}
+      className="min-h-screen lg:h-screen w-full bg-[var(--background)] flex flex-col overflow-y-auto lg:overflow-hidden"
     >
       {/* Header */}
       <header
@@ -142,7 +147,7 @@ export default function Results() {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/main")}
             style={{
               width: "36px",
               height: "36px",
@@ -159,8 +164,8 @@ export default function Results() {
             <ArrowLeft size={16} />
           </button>
           <div>
-            <div style={{ fontSize: "15px", fontWeight: 800, color: "var(--neon)" }}>Route Results</div>
-            <div style={{ fontSize: "10px", color: "var(--muted-foreground)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            <div className="text-res-base font-bold text-[var(--neon)]">Route Results</div>
+            <div className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] tracking-wide uppercase">
               Optimal Path Found
             </div>
           </div>
@@ -168,25 +173,15 @@ export default function Results() {
 
         <div style={{ display: "flex", alignItems: "center", gap: "8px", overflow: "hidden" }}>
           <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "6px 12px",
-              background: "var(--surface-2)",
-              border: "1px solid var(--border)",
-              borderRadius: "999px",
-              maxWidth: "320px",
-              overflow: "hidden",
-            }}
+            className="hidden min-[800px]:flex items-center gap-1.5 px-3 py-1.5 bg-[var(--surface-2)] border border-[var(--border)] rounded-full max-w-[140px] sm:max-w-[280px] md:max-w-[400px] overflow-hidden"
           >
-            <Navigation size={12} style={{ color: "var(--neon)", flexShrink: 0 }} />
-            <span style={{ fontSize: "12px", color: "var(--foreground)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <Navigation size={12} className="text-[var(--neon)] shrink-0" />
+            <span className="text-[11px] sm:text-xs text-[var(--foreground)] truncate">
               {startNode.name}
             </span>
-            <span style={{ fontSize: "12px", color: "var(--muted-foreground)", flexShrink: 0 }}>→</span>
-            <MapPin size={12} style={{ color: "#8b5cf6", flexShrink: 0 }} />
-            <span style={{ fontSize: "12px", color: "var(--foreground)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <span className="text-[11px] text-[var(--muted-foreground)] shrink-0">→</span>
+            <MapPin size={12} className="text-[#8b5cf6] shrink-0" />
+            <span className="text-[11px] sm:text-xs text-[var(--foreground)] truncate">
               {endNode.name}
             </span>
           </div>
@@ -302,47 +297,20 @@ export default function Results() {
       {/* Results Content */}
       {!loading && (
         <div
-          className="content-wrapper results-layout"
-          style={{
-            height: "calc(100vh - 60px)",
-            width: "100%",
-            display: "flex",
-            flexDirection: "row",
-            marginTop: "60px",
-            overflow: "hidden",
-          }}
+          className="content-wrapper results-layout flex flex-col lg:flex-row flex-1 w-full mt-[60px] lg:h-[calc(100vh-60px)] lg:overflow-hidden"
         >
           {/* Left: Route Details */}
           <div
-            style={{
-              width: "420px",
-              flexShrink: 0,
-              background: "var(--surface)",
-              borderRight: "1px solid var(--border)",
-              overflowY: "auto",
-              padding: "20px 16px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "16px",
-            }}
+            className="w-full lg:w-[360px] xl:w-[380px] shrink-0 bg-[var(--surface)] border-r border-[var(--border)] overflow-y-auto p-4 flex flex-col gap-4"
           >
             {/* Metrics Row */}
             <div>
-              <h3
-                style={{
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  color: "var(--muted-foreground)",
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  marginBottom: "12px",
-                }}
-              >
+              <h3 className="text-[10px] font-bold text-[var(--muted-foreground)] tracking-wider uppercase mb-2">
                 Route Metrics
               </h3>
-              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+              <div className="grid grid-cols-3 gap-2">
                 <MetricCard
-                  icon={<Clock size={13} style={{ color: "var(--neon)" }} />}
+                  icon={<Clock size={12} style={{ color: "var(--neon)" }} />}
                   label="Time"
                   value={String(result.totalTime)}
                   unit="min"
@@ -350,7 +318,7 @@ export default function Results() {
                   dimColor="var(--neon-dim)"
                 />
                 <MetricCard
-                  icon={<DollarSign size={13} style={{ color: "#f59e0b" }} />}
+                  icon={<DollarSign size={12} style={{ color: "#f59e0b" }} />}
                   label="Cost"
                   value={String(result.totalCost)}
                   unit="DZD"
@@ -358,13 +326,34 @@ export default function Results() {
                   dimColor="rgba(245,158,11,0.15)"
                 />
                 <MetricCard
-                  icon={<Leaf size={13} style={{ color: "#10b981" }} />}
+                  icon={<Leaf size={12} style={{ color: "#10b981" }} />}
                   label="CO₂"
                   value={String(result.totalCO2)}
                   unit="g"
                   color="#10b981"
                   dimColor="rgba(16,185,129,0.15)"
                 />
+              </div>
+
+              {/* Responsive Route Endpoint Summary (Only visible < 800px) */}
+              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 min-[800px]:hidden">
+                <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 px-3 py-1.5 flex flex-col">
+                  <div className="text-[9px] font-bold uppercase tracking-wide text-blue-500">
+                    Start
+                  </div>
+                  <div className="mt-0.5 text-[11px] font-bold text-[var(--foreground)] truncate" title={startNode.name}>
+                    {startNode.name}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-purple-500/20 bg-purple-500/5 px-3 py-1.5 flex flex-col">
+                  <div className="text-[9px] font-bold uppercase tracking-wide text-purple-500">
+                    Arrival
+                  </div>
+                  <div className="mt-0.5 text-[11px] font-bold text-[var(--foreground)] truncate" title={endNode.name}>
+                    {endNode.name}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -393,16 +382,7 @@ export default function Results() {
 
             {/* Step-by-step */}
             <div>
-              <h3
-                style={{
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  color: "var(--muted-foreground)",
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  marginBottom: "12px",
-                }}
-              >
+              <h3 className="text-[10px] font-bold text-[var(--muted-foreground)] tracking-wider uppercase mb-3">
                 Turn-by-Turn Directions
               </h3>
 
@@ -425,17 +405,12 @@ export default function Results() {
                       }}
                     >
                       {/* Timeline */}
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+                      <div className="flex flex-col items-center shrink-0">
                         <div
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center border"
                           style={{
-                            width: "32px",
-                            height: "32px",
-                            borderRadius: "50%",
                             background: `${color}18`,
                             border: `1.5px solid ${color}50`,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
                             color: color,
                           }}
                         >
@@ -443,9 +418,8 @@ export default function Results() {
                         </div>
                         {i < result.steps.length - 1 && (
                           <div
+                            className="w-px h-6 bg-linear-to-b"
                             style={{
-                              width: "1px",
-                              height: "28px",
                               background: `linear-gradient(to bottom, ${color}40, transparent)`,
                             }}
                           />
@@ -459,43 +433,32 @@ export default function Results() {
                           paddingBottom: i < result.steps.length - 1 ? "16px" : "8px",
                         }}
                       >
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                          <span
-                            style={{
-                              fontSize: "13px",
-                              fontWeight: 600,
-                              color: "var(--foreground)",
-                              lineHeight: 1.3,
-                            }}
-                          >
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[12px] font-semibold text-[var(--foreground)] leading-tight">
                             {step.instruction}
                           </span>
                           <span
+                            className="text-[9px] font-bold px-1.5 py-0.5 rounded-full border whitespace-nowrap"
                             style={{
-                              fontSize: "10px",
-                              fontWeight: 700,
-                              padding: "2px 7px",
-                              borderRadius: "999px",
                               background: `${color}18`,
                               border: `1px solid ${color}35`,
                               color: color,
-                              whiteSpace: "nowrap",
                             }}
                           >
                             {transportLabel(step.transport, step.line)}
                           </span>
                         </div>
-                        <div style={{ display: "flex", gap: "10px", marginTop: "5px", flexWrap: "wrap" }}>
-                          <span style={{ fontSize: "11px", color: "var(--muted-foreground)" }}>
+                        <div className="flex gap-2.5 mt-1 flex-wrap">
+                          <span className="text-[10px] text-[var(--muted-foreground)]">
                             ⏱ {step.timeMins} min
                           </span>
                           {step.costDZD > 0 && (
-                            <span style={{ fontSize: "11px", color: "var(--muted-foreground)" }}>
+                            <span className="text-[10px] text-[var(--muted-foreground)]">
                               💰 {step.costDZD} DZD
                             </span>
                           )}
                           {step.co2Grams > 0 && (
-                            <span style={{ fontSize: "11px", color: "var(--muted-foreground)" }}>
+                            <span className="text-[10px] text-[var(--muted-foreground)]">
                               🌿 {step.co2Grams}g CO₂
                             </span>
                           )}
@@ -508,39 +471,19 @@ export default function Results() {
 
               {/* Final destination */}
               <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  marginTop: "4px",
-                  padding: "12px",
-                  background: "rgba(139,92,246,0.08)",
-                  border: "1px solid rgba(139,92,246,0.2)",
-                  borderRadius: "0.875rem",
-                  animation: "float-up 0.4s ease-out 1s forwards",
-                  opacity: 0,
-                }}
+                className="flex items-center gap-2.5 mt-1 p-2.5 bg-[var(--accent-to-dim)] border border-[var(--accent-to-border)] rounded-xl animate-float-up opacity-0"
+                style={{ animationDelay: "1s" }}
               >
                 <div
-                  style={{
-                    width: "32px",
-                    height: "32px",
-                    borderRadius: "50%",
-                    background: "rgba(139,92,246,0.18)",
-                    border: "1.5px solid rgba(139,92,246,0.5)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
+                  className="w-7 h-7 rounded-full bg-[var(--accent-to-dim)] border border-[var(--accent-to-border)] flex items-center justify-center shrink-0"
                 >
-                  <MapPin size={14} style={{ color: "#8b5cf6" }} />
+                  <MapPin size={12} className="text-[#8b5cf6]" />
                 </div>
-                <div>
-                  <p style={{ fontSize: "13px", fontWeight: 700, color: "var(--foreground)", margin: 0 }}>
+                <div className="min-w-0">
+                  <p className="text-[12px] font-bold text-[var(--foreground)] m-0">
                     You have arrived!
                   </p>
-                  <p style={{ fontSize: "11px", color: "var(--muted-foreground)", margin: "2px 0 0 0" }}>
+                  <p className="text-[10px] text-[var(--muted-foreground)] m-0 truncate">
                     {endNode.name}
                   </p>
                 </div>
@@ -549,7 +492,7 @@ export default function Results() {
 
             {/* Back button */}
             <button
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/main")}
               style={{
                 width: "100%",
                 padding: "13px",
@@ -568,96 +511,65 @@ export default function Results() {
             </button>
           </div>
 
-          {/* Map Area */}
-          <div style={{ flex: 1, position: "relative", minHeight: "400px" }}>
-            <AlgiersMap
-              startNode={startNode}
-              endNode={endNode}
-              routeResult={result}
-              onNodeSelect={() => {}}
-              selectMode="start"
-            />
+          {/* Map Area Section */}
+          <div className="w-full lg:flex-1 px-2 sm:px-4 lg:px-0 pb-4 lg:pb-0 flex flex-col min-h-[450px]">
+            <div className="relative w-full flex-1 min-h-[400px] lg:h-full bg-slate-100 dark:bg-slate-900 rounded-2xl overflow-hidden border border-[var(--border)]">
+              <AlgiersMap
+                startNode={startNode}
+                endNode={endNode}
+                routeResult={result}
+                onNodeSelect={() => {}}
+                selectMode="start"
+                nodes={nodes}
+              />
 
-            {/* Floating metrics overlay */}
-            <div
-              style={{
-                position: "absolute",
-                top: "16px",
-                right: "16px",
-                zIndex: 1000,
-                display: "flex",
-                flexDirection: "column",
-                gap: "8px",
-                animation: "float-up 0.5s ease-out 0.2s forwards",
-                opacity: 0,
-              }}
-            >
-              {[
-                { icon: "⏱", label: `${result.totalTime} min`, color: "var(--neon)", border: "rgba(0,212,200,0.3)" },
-                { icon: "💰", label: `${result.totalCost} DZD`, color: "#f59e0b", border: "rgba(245,158,11,0.3)" },
-                { icon: "🌿", label: `${result.totalCO2}g CO₂`, color: "#10b981", border: "rgba(16,185,129,0.3)" },
-              ].map(item => (
-                <div
-                  key={item.label}
-                  style={{
-                    padding: "8px 14px",
-                    background: "var(--card)",
-                    opacity: 0.95,
-                    backdropFilter: "blur(12px)",
-                    border: `1px solid ${item.border}`,
-                    borderRadius: "0.75rem",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    boxShadow: `0 4px 16px rgba(0,0,0,0.3)`,
-                  }}
-                >
-                  <span style={{ fontSize: "14px" }}>{item.icon}</span>
-                  <span style={{ fontSize: "13px", fontWeight: 700, color: item.color }}>{item.label}</span>
-                </div>
-              ))}
+              {/* Floating metrics overlay overlay */}
+              <div
+                className="absolute top-3 right-3 z-[1000] flex flex-col gap-2 animate-float-up opacity-0"
+                style={{ animationDelay: "0.2s" }}
+              >
+                {[
+                  { icon: "⏱", label: `${result.totalTime} min`, color: "var(--neon)", border: "rgba(0,212,200,0.3)" },
+                  { icon: "💰", label: `${result.totalCost} DZD`, color: "#f59e0b", border: "rgba(245,158,11,0.3)" },
+                  { icon: "🌿", label: `${result.totalCO2}g CO₂`, color: "#10b981", border: "rgba(16,185,129,0.3)" },
+                ].map(item => (
+                  <div
+                    key={item.label}
+                    className="px-2.5 py-1.5 sm:px-3 sm:py-2 bg-[var(--card)]/95 backdrop-blur-md border rounded-xl flex items-center gap-2 shadow-lg"
+                    style={{ borderColor: item.border }}
+                  >
+                    <span className="text-xs sm:text-sm">{item.icon}</span>
+                    <span className="text-[11px] sm:text-xs font-bold" style={{ color: item.color }}>{item.label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Mobile styles */}
+      {/* Mobile styles - updated for 770px stability */}
       <style>{`
-        @media (max-width: 768px) {
-          [data-cmp="Results"] {
-            height: auto !important;
-            overflow: visible !important;
-          }
-          .content-wrapper {
-            height: auto !important;
-            overflow: visible !important;
-          }
+        @media (max-width: 770px) {
           .results-layout {
-            flex-direction: column !important;
-            height: auto !important;
-            overflow: visible !important;
-            padding: 16px !important;
-            gap: 16px !important;
+            padding: 12px !important;
+            gap: 12px !important;
           }
           .results-layout > div:first-child {
             width: 100% !important;
             height: auto !important;
-            border: 1px solid var(--border) !important;
-            border-radius: 20px !important;
-            max-height: none !important;
-            flex-shrink: 0;
-            overflow: visible !important;
+            border-radius: 16px !important;
+            padding: 16px !important;
             background: var(--card) !important;
+            border: 1px solid var(--border) !important;
           }
           .results-layout > div:last-child {
             width: 100% !important;
-            height: 450px !important;
-            min-height: 450px !important;
-            flex-shrink: 0;
-            margin: 0 !important;
-            border-radius: 20px !important;
-            overflow: hidden !important;
+            height: 500px !important;
+            min-height: 400px !important;
+            border-radius: 16px !important;
             border: 1px solid var(--border) !important;
+            overflow: hidden !important;
           }
         }
       `}</style>

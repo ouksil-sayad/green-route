@@ -15,6 +15,7 @@ declare global {
   const Bus: typeof import('lucide-react').Bus
   const Calendar: typeof import('lucide-react').Calendar
   const Car: typeof import('lucide-react').Car
+  const Check: typeof import('lucide-react').Check
   const CheckCircle: typeof import('lucide-react').CheckCircle
   const CheckIcon: typeof import('lucide-react').CheckIcon
   const ChevronDownIcon: typeof import('lucide-react').ChevronDownIcon
@@ -27,6 +28,7 @@ declare global {
   const Clock: typeof import('lucide-react').Clock
   const Command: typeof import('lucide-react').Command
   const DollarSign: typeof import('lucide-react').DollarSign
+  const Filter: typeof import('lucide-react').Filter
   const Footprints: typeof import('lucide-react').Footprints
   const Form: typeof import('lucide-react').Form
   const Fragment: typeof import('react').Fragment
@@ -36,6 +38,8 @@ declare global {
   const Infinity: typeof import('lucide-react').Infinity
   const InfoIcon: typeof import('lucide-react').InfoIcon
   const Leaf: typeof import('lucide-react').Leaf
+  const List: typeof import('lucide-react').List
+  const Loader2: typeof import('lucide-react').Loader2
   const Loader2Icon: typeof import('lucide-react').Loader2Icon
   const Map: typeof import('lucide-react').Map
   const MapPin: typeof import('lucide-react').MapPin
@@ -49,6 +53,7 @@ declare global {
   const OctagonXIcon: typeof import('lucide-react').OctagonXIcon
   const PanelLeftIcon: typeof import('lucide-react').PanelLeftIcon
   const Route: typeof import('lucide-react').Route
+  const Search: typeof import('lucide-react').Search
   const SearchIcon: typeof import('lucide-react').SearchIcon
   const Section: typeof import('lucide-react').Section
   const Sheet: typeof import('lucide-react').Sheet
@@ -63,6 +68,7 @@ declare global {
   const TriangleAlertIcon: typeof import('lucide-react').TriangleAlertIcon
   const User: typeof import('lucide-react').User
   const Wind: typeof import('lucide-react').Wind
+  const X: typeof import('lucide-react').X
   const XIcon: typeof import('lucide-react').XIcon
   const Zap: typeof import('lucide-react').Zap
   const cache: typeof import('react').cache

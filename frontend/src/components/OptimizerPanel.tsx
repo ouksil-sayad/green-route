@@ -11,6 +11,7 @@ interface OptimizerPanelProps {
   costWeight?: number;
   co2Weight?: number;
   selectMode?: "start" | "end";
+  isLoading?: boolean;
   onTimeWeight?: (v: number) => void;
   onCostWeight?: (v: number) => void;
   onCO2Weight?: (v: number) => void;
@@ -18,6 +19,7 @@ interface OptimizerPanelProps {
   onFindRoute?: () => void;
   onSelectModeChange?: (mode: "start" | "end") => void;
   onPreset?: (preset: "fastest" | "cheapest" | "greenest") => void;
+  onPickerOpen?: (role: "start" | "end") => void;
 }
 
 
@@ -41,81 +43,54 @@ function PrioritySlider({ icon, label, value, color, isSaved, onSave, onChange, 
     : `linear-gradient(to right, ${color}88, ${color})`;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "10px", opacity: disabled ? 0.6 : 1 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+    <div className="flex flex-col gap-2" style={{ opacity: disabled ? 0.6 : 1 }}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
           <div
+            className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center border"
             style={{
-              width: "28px",
-              height: "28px",
-              borderRadius: "8px",
               background: isLight ? "var(--surface-3)" : `${color}22`,
-              border: `1px solid ${isLight ? "var(--border)" : `${color}44`}`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              borderColor: isLight ? "var(--border)" : `${color}44`,
               color: isLight ? "var(--muted-foreground)" : color,
             }}
           >
             {icon}
           </div>
-          <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)" }}>{label}</span>
+          <span className="text-[12px] font-bold text-[var(--foreground)]">{label}</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div className="flex items-center gap-2">
           <span
+            className="text-[10px] sm:text-[11px] font-black px-2 py-0.5 rounded-full border min-w-[38px] text-center"
             style={{
-              fontSize: "12px",
-              fontWeight: 800,
               color: isLight ? "var(--foreground)" : color,
               background: isLight ? "var(--surface-3)" : `${color}15`,
-              padding: "2px 8px",
-              borderRadius: "999px",
-              border: `1px solid ${isLight ? "var(--border)" : `${color}30`}`,
-              minWidth: "45px",
-              textAlign: "center"
+              borderColor: isLight ? "var(--border)" : `${color}30`,
             }}
           >
             {Math.round(value)}%
           </span>
           <button
             onClick={onSave}
+            className="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase cursor-pointer transition-all"
             style={{
-              padding: "4px 10px",
-              borderRadius: "6px",
-              fontSize: "10px",
-              fontWeight: 700,
-              textTransform: "uppercase",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
               background: isSaved ? "var(--neon)" : "var(--surface-3)",
-              border: `1px solid ${isSaved ? "var(--neon)" : "var(--border)"}`,
+              borderColor: isSaved ? "var(--neon)" : "var(--border)",
               color: isSaved ? "var(--background)" : "var(--muted-foreground)",
+              border: "1px solid",
             }}
           >
             {isSaved ? "Saved" : "Save"}
           </button>
         </div>
       </div>
-      <div style={{ position: "relative", height: "20px", display: "flex", alignItems: "center" }}>
+      <div className="relative h-4 flex items-center">
         <div
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            height: "4px",
-            borderRadius: "2px",
-            background: trackBg,
-            overflow: "hidden",
-          }}
+          className="absolute inset-x-0 h-1 rounded-full overflow-hidden"
+          style={{ background: trackBg }}
         >
           <div
-            style={{
-              width: `${value}%`,
-              height: "100%",
-              background: activeTrack,
-              borderRadius: "2px",
-              transition: "width 0.1s ease",
-            }}
+            className="h-full rounded-full transition-all duration-100"
+            style={{ width: `${value}%`, background: activeTrack }}
           />
         </div>
         <input
@@ -126,21 +101,15 @@ function PrioritySlider({ icon, label, value, color, isSaved, onSave, onChange, 
           value={value}
           disabled={disabled || isSaved}
           onChange={e => onChange(Number(e.target.value))}
-          style={{
-            position: "relative",
-            width: "100%",
-            height: "20px",
-            appearance: "none",
-            background: "transparent",
-            cursor: isSaved ? "not-allowed" : "pointer",
-            zIndex: 1,
-          }}
-          className="slider-thumb-neon"
+          className="slider-thumb-neon relative w-full h-4 bg-transparent appearance-none z-10"
+          style={{ cursor: isSaved ? "not-allowed" : "pointer" }}
         />
       </div>
     </div>
   );
 }
+
+import { Loader2 } from "lucide-react";
 
 export default function OptimizerPanel({
   startNode = null,
@@ -149,6 +118,7 @@ export default function OptimizerPanel({
   costWeight = 33,
   co2Weight = 34,
   selectMode = "start",
+  isLoading = false,
   onTimeWeight = () => {},
   onCostWeight = () => {},
   onCO2Weight = () => {},
@@ -156,10 +126,11 @@ export default function OptimizerPanel({
   onFindRoute = () => {},
   onSelectModeChange = () => {},
   onPreset = () => {},
+  onPickerOpen = () => {},
 }: OptimizerPanelProps) {
   const { theme } = useTheme();
   const isLight = theme === "light";
-  const canFindRoute = startNode !== null && endNode !== null;
+  const canFindRoute = startNode !== null && endNode !== null && !isLoading;
 
   const [saved, setSaved] = React.useState({ time: false, cost: false, co2: false });
 
@@ -206,66 +177,47 @@ export default function OptimizerPanel({
 
   const handleReset = () => {
     setSaved({ time: false, cost: false, co2: false });
-    onTimeWeight(0);
-    onCostWeight(0);
-    onCO2Weight(0);
+    onTimeWeight(33);
+    onCostWeight(33);
+    onCO2Weight(34);
   };
 
   return (
     <div
       data-cmp="OptimizerPanel"
-      style={{
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        gap: "16px",
-      }}
+      className="w-full flex flex-col gap-3 sm:gap-4"
     >
       {/* Journey Section */}
       <div
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: "1.25rem",
-          padding: "20px",
-        }}
+        className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 sm:p-5"
       >
-        <div style={{ marginBottom: "16px" }}>
-          <h3 style={{ fontSize: "15px", fontWeight: 700, color: "var(--foreground)", margin: 0 }}>
+        <div className="mb-3 sm:mb-4">
+          <h3 className="text-res-sm font-bold text-[var(--foreground)] m-0">
             Your Journey
           </h3>
-          <p style={{ fontSize: "12px", color: "var(--muted-foreground)", margin: "4px 0 0 0" }}>
+          <p className="text-[11px] text-[var(--muted-foreground)] mt-1">
             Click a card, then tap the map to set location
           </p>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+        <div className="flex flex-col gap-2">
           <JourneyCard
             role="from"
             node={startNode}
             isActive={selectMode === "start"}
-            onClick={() => onSelectModeChange("start")}
+            onClick={() => {
+              onSelectModeChange("start");
+              onPickerOpen("start");
+            }}
           />
 
-          <div style={{ display: "flex", justifyContent: "center" }}>
+          <div className="flex justify-center -my-1.5 relative z-10">
             <button
               onClick={onSwap}
-              style={{
-                width: "36px",
-                height: "36px",
-                borderRadius: "50%",
-                background: "var(--accent)",
-                border: "1px solid var(--border)",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "all 0.2s ease",
-                color: "var(--neon)",
-              }}
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[var(--accent)] border border-[var(--border)] cursor-pointer flex items-center justify-center transition-all hover:scale-110 text-[var(--neon)]"
               title="Swap locations"
             >
-              <ArrowRightLeft size={15} />
+              <ArrowRightLeft size={13} />
             </button>
           </div>
 
@@ -273,46 +225,34 @@ export default function OptimizerPanel({
             role="to"
             node={endNode}
             isActive={selectMode === "end"}
-            onClick={() => onSelectModeChange("end")}
+            onClick={() => {
+              onSelectModeChange("end");
+              onPickerOpen("end");
+            }}
           />
         </div>
       </div>
 
       {/* AI Optimizer Section */}
       <div
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: "1.25rem",
-          padding: "20px",
-        }}
+        className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 sm:p-5"
       >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
-          <h3 style={{ fontSize: "15px", fontWeight: 700, color: "var(--foreground)", margin: 0 }}>
-            Drag to adjust priorities
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-res-sm font-bold text-[var(--foreground)] m-0">
+            Adjust Priorities
           </h3>
           <button
             onClick={handleReset}
-            style={{
-              padding: "4px 12px",
-              borderRadius: "8px",
-              background: "var(--surface-3)",
-              border: "1px solid var(--border)",
-              color: "var(--destructive)",
-              fontSize: "11px",
-              fontWeight: 700,
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
+            className="px-2.5 py-1 rounded-lg bg-[var(--surface-3)] border border-[var(--border)] text-[var(--destructive)] text-[10px] font-bold cursor-pointer transition-all hover:bg-[var(--destructive)] hover:text-white"
           >
             Reset
           </button>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        <div className="flex flex-col gap-4 sm:gap-5">
           <PrioritySlider
-            icon={<Clock size={13} />}
-            label="Time Priority"
+            icon={<Clock size={12} />}
+            label="Time"
             value={timeWeight}
             color="var(--neon)"
             isSaved={saved.time}
@@ -321,7 +261,7 @@ export default function OptimizerPanel({
             disabled={saved.cost && saved.co2}
           />
           <PrioritySlider
-            icon={<DollarSign size={13} />}
+            icon={<DollarSign size={12} />}
             label="Cost"
             value={costWeight}
             color="#f59e0b"
@@ -331,7 +271,7 @@ export default function OptimizerPanel({
             disabled={saved.time && saved.co2}
           />
           <PrioritySlider
-            icon={<Leaf size={13} />}
+            icon={<Leaf size={12} />}
             label="CO₂"
             value={co2Weight}
             color="#10b981"
@@ -343,15 +283,15 @@ export default function OptimizerPanel({
         </div>
 
         {/* Presets */}
-        <div style={{ marginTop: "24px" }}>
-          <p style={{ fontSize: "11px", color: "var(--muted-foreground)", marginBottom: "12px", fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
-            Presets
+        <div className="mt-5 sm:mt-6">
+          <p className="text-[9px] text-[var(--muted-foreground)] mb-2.5 font-bold tracking-wider uppercase">
+            Quick Presets
           </p>
-          <div style={{ display: "flex", gap: "8px" }}>
+          <div className="flex gap-2">
             {[
-              { key: "fastest" as const, label: "Fastest", icon: <Zap size={11} />, color: "var(--neon)", pastel: "var(--pastel-blue)" },
-              { key: "cheapest" as const, label: "Cheapest", icon: <TrendingDown size={11} />, color: "#f59e0b", pastel: "var(--pastel-orange)" },
-              { key: "greenest" as const, label: "Greenest", icon: <Wind size={11} />, color: "#10b981", pastel: "var(--pastel-green)" },
+              { key: "fastest" as const, label: "Fast", icon: <Zap size={10} />, color: "var(--neon)", pastel: "var(--pastel-blue)" },
+              { key: "cheapest" as const, label: "Cheap", icon: <TrendingDown size={10} />, color: "#f59e0b", pastel: "var(--pastel-orange)" },
+              { key: "greenest" as const, label: "Green", icon: <Wind size={10} />, color: "#10b981", pastel: "var(--pastel-green)" },
             ].map(p => (
               <button
                 key={p.key}
@@ -359,20 +299,10 @@ export default function OptimizerPanel({
                   setSaved({ time: false, cost: false, co2: false });
                   onPreset(p.key);
                 }}
+                className="flex-1 py-1.5 sm:py-2 rounded-xl cursor-pointer text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all"
                 style={{
-                  flex: 1,
-                  padding: "10px 4px",
-                  borderRadius: "0.75rem",
                   background: isLight ? p.pastel : "var(--surface-3)",
                   border: `1px solid ${isLight ? "transparent" : "var(--border)"}`,
-                  cursor: "pointer",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "6px",
-                  transition: "all 0.2s ease",
                   color: isLight ? "var(--muted-foreground)" : p.color,
                 }}
               >
@@ -388,26 +318,25 @@ export default function OptimizerPanel({
         {/* Find Route CTA */}
         <button
           onClick={canFindRoute ? onFindRoute : undefined}
+          className="w-full mt-5 sm:mt-6 py-3 sm:py-3.5 rounded-xl text-[13px] font-black tracking-wider uppercase transition-all shadow-lg flex items-center justify-center gap-2"
           style={{
-            width: "100%",
-            marginTop: "20px",
-            padding: "14px",
-            borderRadius: "0.875rem",
             background: canFindRoute
               ? "linear-gradient(135deg, var(--primary), var(--neon-blue))"
-              : "var(--accent)",
+              : (isLoading ? "var(--primary)" : "var(--accent)"),
             border: canFindRoute ? "none" : "1px solid var(--border)",
             cursor: canFindRoute ? "pointer" : "not-allowed",
-            color: canFindRoute ? "var(--primary-foreground)" : "var(--muted-foreground)",
-            fontSize: "14px",
-            fontWeight: 700,
-            letterSpacing: "0.04em",
-            textTransform: "uppercase",
-            transition: "all 0.3s ease",
-            boxShadow: canFindRoute ? "0 4px 24px rgba(0,212,200,0.3)" : "none",
+            color: canFindRoute || isLoading ? "var(--primary-foreground)" : "var(--muted-foreground)",
+            boxShadow: canFindRoute ? "0 4px 20px rgba(0,212,200,0.2)" : "none",
           }}
         >
-          {canFindRoute ? "⚡ Find Optimal Route" : "Select Start & End First"}
+          {isLoading ? (
+            <>
+              <Loader2 className="animate-spin" size={16} />
+              Optimizing...
+            </>
+          ) : (
+            canFindRoute ? "⚡ Find Optimal Route" : "Select Start & End"
+          )}
         </button>
       </div>
     </div>

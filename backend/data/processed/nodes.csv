@@ -1,160 +1,217 @@
 id,name,type,lat,lon
-N1,Place des Martyrs (Metro),metro,36.7748,3.059
-N2,Ali Boumendjel,metro,36.768,3.0555
-N3,Tafourah Grande Poste,metro,36.7372,3.0433
-N4,Khelifa Boukhalfa,metro,36.7401,3.0489
-N5,1er Mai (Metro),metro,36.7448,3.0551
-N6,Aissat Idir (Metro),metro,36.747,3.059
-N7,Hamma,metro,36.749,3.065
-N8,Jardin d Essais,metro,36.746,3.072
-N9,Les Fusilles,metro,36.735,3.078
-N10,Amirouche,metro,36.728,3.085
-N11,Mer et Soleil,metro,36.718,3.092
-N12,Hai El Badr (Metro),metro,36.709,3.098
-N13,Bachdjarah Tennis,metro,36.705,3.11
-N14,Bachdjarah (Metro),metro,36.702,3.118
-N15,El Harrach Gare,metro,36.695,3.128
-N16,El Harrach Centre,metro,36.692,3.135
-N17,Station des Ateliers,metro,36.702,3.095
-N18,Gue de Constantine,metro,36.692,3.092
-N19,Ain Naadja Metro,metro,36.675,3.088
-N20,Place 1er Mai (Bus),bus,36.7448,3.0582
-N21,Place des Martyrs (Bus),bus,36.775,3.0592
-N22,Place Audin,bus,36.7568,3.0547
-N23,Place Aissat Idir (Bus),bus,36.7305,3.0895
-N24,Gare Routiere,bus,36.712,3.148
-N25,Station 2 Mai,bus,36.768,3.061
-N26,Grande Poste Bus,bus,36.7368,3.0429
-N27,Bachdjarah (Bus),bus,36.721,3.118
-N28,El Harrach Bus,bus,36.716,3.132
-N29,Hai El Badr (Bus),bus,36.709,3.158
-N30,Baraki,bus,36.672,3.095
-N31,Eucalyptus,bus,36.688,3.155
-N32,Dergana,bus,36.732,3.22
-N33,Rouiba,bus,36.735,3.288
-N34,Zeralda GR,bus,36.728,2.875
-N35,Sidi Abd Allah,bus,36.712,2.862
-N36,Ben Aknoun,bus,36.759,3.007
-N37,Chevalley,bus,36.778,3.012
-N38,Bouzareah,bus,36.792,3.018
-N39,Place Ferhani,bus,36.735,3.095
-N40,El Annasser,bus,36.728,3.112
-N41,Basta Ali,bus,36.742,3.035
-N42,Cité Abziou 1,bus,36.682,2.968
-N43,Ben Omar,bus,36.71,3.075
-N44,Bouzareah Chevalley,bus,36.785,3.012
-N45,Station Kouba,bus,36.728,3.105
-N46,Bir Mourad Rais,bus,36.725,3.052
-N47,El Madania,bus,36.755,3.058
-N48,El Afia Garidi,bus,36.721,3.11
-N49,Bir Khadem,bus,36.708,3.055
-N50,Ain Naadja Bus,bus,36.695,3.078
-N51,Hydra,bus,36.748,3.015
-N52,Ain Benian,bus,36.802,2.938
-N53,Ardis,bus,36.722,3.168
-N54,Aeroport Alger,bus,36.691,3.215
-N55,Ain El Malha,bus,36.698,3.082
-N56,Djenane Sfari Birkhadem,bus,36.715,3.045
-N57,Oued Koriche,bus,36.792,3.032
-N58,Staoueli,bus,36.755,2.882
-N59,El Mouradia,bus,36.745,3.028
-N60,Palais du Peuple,bus,36.748,3.045
-N61,Souidania Bouchaoui,bus,36.752,2.975
-N62,Sidi Youcef,bus,36.805,3.025
-N63,Ouled Fayet,bus,36.735,2.95
-N64,Ain Allah,bus,36.765,2.988
-N65,Hopital Militaire,bus,36.718,3.132
-N66,Rais Hamidou,bus,36.795,2.988
-N67,Bab Ezzouar,bus,36.718,3.182
-N68,Sidi Mhamed,bus,36.765,3.065
-N69,Sidi Moussa,bus,36.668,3.175
-N70,Reghaia,bus,36.832,3.345
-N71,Ain Taya,bus,36.788,3.312
-N72,Borj El Bahri,bus,36.805,3.355
-N73,El Kerrouch,bus,36.838,3.325
-N74,Alger Plage,bus,36.768,3.072
-N75,Hai El Mahdjer,bus,36.745,3.228
-N76,Birtouta,bus,36.665,3.055
-N77,Benchoubane Centre,bus,36.728,3.295
-N78,Zone Industrielle Rouiba,bus,36.722,3.275
-N79,Tessala El Merdja,bus,36.682,2.932
-N80,Diar Es Saada,bus,36.748,3.115
-N81,Cité Abziou 2 Douera,bus,36.675,2.975
-N82,Baba Hassen,bus,36.725,2.998
-N83,Ouled Chbel,bus,36.645,3.035
-N84,Cité Chaibia,bus,36.658,3.085
-N85,Cité 1200 Logts,bus,36.702,3.148
-N86,Ed Dalia,bus,36.685,3.115
-N87,Laaraibia,bus,36.678,3.105
-N88,Sidi Moussa Eucalyptus,bus,36.672,3.185
-N89,Cité 1540 Logts,bus,36.742,3.195
-N90,Baraki Ronda,bus,36.668,3.082
-N91,Cités Vertes Ouled Fayet,bus,36.732,2.942
-N92,Cité 1200 Haouch,bus,36.698,2.985
-N93,Ben Zerga,bus,36.712,3.158
-N94,Cité Diar Gharb,bus,36.778,3.295
-N95,Cité Mokhtar Zerhouni,bus,36.708,3.142
-N96,Chateauneuf,bus,36.798,3.022
-N97,Cité En Najd Sidi Menif,bus,36.745,2.885
-N98,Zeralda SMM,bus,36.732,2.865
-N99,Cité 1500 Logts Tessala,bus,36.708,2.845
-N100,Gare Ferroviaire Univ,bus,36.725,2.905
-N101,Cité 1 Nov Rahmania,bus,36.695,2.915
-N102,Cité 600 Logts Baba Hassan,bus,36.718,2.978
-N103,Cité Aslan Atlas,bus,36.715,2.925
-N104,Sidi Bennour,bus,36.698,2.875
-N105,Place Audin Bus,bus,36.7568,3.0547
-N106,Cité Mohamed Maouch,bus,36.742,2.965
-N107,Ain Benian Cité Belle Vue,bus,36.808,2.915
-N108,Plateau Ouled Fayet,bus,36.742,2.955
-I1,Place des Martyrs (Metro) / Place des Martyrs (Metro) Bus,intersection,36.7749,3.0591
-I2,Place des Martyrs (Metro) / Station 2 Mai,intersection,36.7714,3.06
-I3,Ali Boumendjel / Place des Martyrs (Metro) Bus,intersection,36.7715,3.05735
-I4,Ali Boumendjel / Station 2 Mai,intersection,36.768,3.05825
-I5,Ali Boumendjel / Sidi Mhamed,intersection,36.7665,3.06025
-I6,Tafourah Grande Poste / Grande Poste Bus,intersection,36.737,3.0431
-I7,Tafourah Grande Poste / Basta Ali,intersection,36.7396,3.03915
-I8,Khelifa Boukhalfa / Place 1er Mai (Bus) (Metro),intersection,36.74245,3.05355
-I9,Khelifa Boukhalfa / Grande Poste Bus,intersection,36.73845,3.0459
-I10,Khelifa Boukhalfa / Palais du Peuple,intersection,36.74405,3.04695
-I11,1er Mai (Metro) / Place 1er Mai (Bus) (Metro),intersection,36.7448,3.05665
-I12,1er Mai (Metro) / Palais du Peuple,intersection,36.7464,3.05005
-I13,Aissat Idir (Metro) / Place 1er Mai (Bus) (Metro),intersection,36.7459,3.0586
-I14,Aissat Idir (Metro) / El Madania,intersection,36.751,3.0585
-I15,Hamma / Place 1er Mai (Bus) (Metro),intersection,36.7469,3.0616
-I16,Hamma / El Madania,intersection,36.752,3.0615
-I17,Amirouche / Place Aissat Idir (Bus) (Metro),intersection,36.72925,3.08725
-I18,Ain Naadja Metro / Baraki,intersection,36.6735,3.0915
-I19,Ain Naadja Metro / Baraki Ronda,intersection,36.6715,3.085
-I20,Place des Martyrs (Metro) Bus / Station 2 Mai,intersection,36.7715,3.0601
-I21,Place Audin / El Madania,intersection,36.7559,3.05635
-I22,Place Aissat Idir (Bus) (Metro) / Place Ferhani,intersection,36.73275,3.09225
-I23,Gare Routiere / Hai El Badr (Metro) Bus,intersection,36.7105,3.153
-I24,Gare Routiere / Ben Zerga,intersection,36.712,3.153
-I25,Gare Routiere / Cité Mokhtar Zerhouni,intersection,36.71,3.145
-I26,Station 2 Mai / Sidi Mhamed,intersection,36.7665,3.063
-I27,Station 2 Mai / Alger Plage,intersection,36.768,3.0665
-I28,Grande Poste Bus / Basta Ali,intersection,36.7394,3.03895
-I29,Bachdjarah (Metro) Bus / El Annasser,intersection,36.7245,3.115
-I30,Bachdjarah (Metro) Bus / El Afia Garidi,intersection,36.721,3.114
-I31,El Harrach Bus / Hopital Militaire,intersection,36.717,3.132
-I32,Hai El Badr (Metro) Bus / Ben Zerga,intersection,36.7105,3.158
-I33,Rouiba / Benchoubane Centre,intersection,36.7315,3.2915
-I34,Zeralda GR / Zeralda SMM,intersection,36.73,2.87
-I35,Chevalley / Bouzareah Chevalley,intersection,36.7815,3.012
-I36,Bouzareah / Bouzareah Chevalley,intersection,36.7885,3.015
-I37,Bouzareah / Chateauneuf,intersection,36.795,3.02
-I38,El Annasser / Station Kouba,intersection,36.728,3.1085
-I39,El Annasser / El Afia Garidi,intersection,36.7245,3.111
-I40,Basta Ali / El Mouradia,intersection,36.7435,3.0315
-I41,Cité Abziou 1 / Cité Abziou 2 Douera,intersection,36.6785,2.9715
-I42,Station Kouba / El Afia Garidi,intersection,36.7245,3.1075
-I43,El Madania / Place Audin Bus,intersection,36.7559,3.05635
-I44,Ain Naadja Bus / Ain El Malha,intersection,36.6965,3.08
-I45,Sidi Youcef / Chateauneuf,intersection,36.8015,3.0235
-I46,Ouled Fayet / Cités Vertes Ouled Fayet,intersection,36.7335,2.946
-I47,Ouled Fayet / Plateau Ouled Fayet,intersection,36.7385,2.9525
-I48,Sidi Mhamed / Alger Plage,intersection,36.7665,3.0685
-I49,Sidi Moussa / Sidi Moussa Eucalyptus,intersection,36.67,3.18
-I50,Cité 1200 Logts / Cité Mokhtar Zerhouni,intersection,36.705,3.145
-I51,Cité Mohamed Maouch / Plateau Ouled Fayet,intersection,36.742,2.96
+N1,Place des Martyrs (Metro),metro,36.7856739,3.0595851
+N2,Ali Boumendjel,metro,36.7793612,3.0554862
+N3,Tafourah Grande Poste,metro,36.7729504,3.0584352
+N4,Khelifa Boukhalfa,metro,36.7655941,3.0502805
+N5,1er Mai (Metro),metro,36.7603444,3.0590622
+N6,Aissat Idir (Metro),metro,36.7570656,3.0613676
+N7,Hamma,metro,36.7530634,3.0660551
+N8,Jardin d Essais,metro,36.7484085,3.0709071
+N9,Les Fusilles,metro,36.7423442,3.0821438
+N10,Amirouche,metro,36.7380453,3.094621
+N11,Mer et Soleil,metro,36.7337701,3.095925
+N12,Hai El Badr (Metro),metro,36.725436,3.0997352
+N13,Bachdjarah Tennis,metro,36.7180875,3.1062019
+N14,Bachdjarah (Metro),metro,36.7212269,3.1144823
+N15,El Harrach Gare,metro,36.7215178,3.1279905
+N16,El Harrach Centre,metro,36.7224658,3.1369507
+N17,Station des Ateliers,metro,36.7148434,3.0979702
+N18,Gue de Constantine,metro,36.7098206,3.0883166
+N19,Ain Naadja Metro,metro,36.7056471,3.0800782
+N20,Place 1er Mai (Bus),bus,36.7600904,3.0518486
+N21,Place des Martyrs (Bus),bus,36.7866591,3.0598889
+N22,Place Audin,bus,36.7692454,3.0523699
+N23,Place Aissat Idir (Bus),bus,36.7569725,3.0591263
+N24,Gare Routiere,bus,36.7437064,3.1018647
+N25,Station 2 Mai,bus,36.7651212,3.0555652
+N26,Grande Poste Bus,bus,36.7725907,3.0580321
+N27,Bachdjarah (Bus),bus,36.721398,3.1155474
+N28,El Harrach Bus,bus,36.7215452,3.1356422
+N29,Hai El Badr (Bus),bus,36.7247688,3.1014614
+N30,Baraki,bus,36.6732592,3.0861148
+N31,Eucalyptus,bus,36.6605334,3.1549701
+N32,Dergana,bus,36.7773066,3.2447855
+N33,Rouiba,bus,36.7404564,3.2837829
+N34,Zeralda GR,bus,36.7130577,2.8349928
+N35,Sidi Abd Allah,bus,36.6903526,2.8526478
+N36,Ben Aknoun,bus,36.7529778,3.0057505
+N37,Chevalley,bus,36.7693958,3.0059946
+N38,Bouzareah,bus,36.790857,3.0165799
+N39,Place Ferhani,bus,36.7943818,3.0526682
+N40,El Annasser,bus,36.7428125,3.0866344
+N41,Basta Ali,bus,36.7919837,3.0524754
+N42,Cité Abziou 1,bus,36.6897737,2.9368958
+N43,Ben Omar,bus,36.7263633,3.0800199
+N45,Station Kouba,bus,36.7296157,3.0722859
+N46,Bir Mourad Rais,bus,36.739341,3.0491378
+N47,El Madania,bus,36.7421759,3.0647259
+N48,El Afia Garidi,bus,36.7356376,3.0629483
+N49,Bir Khadem,bus,36.7184692,3.0439703
+N50,Ain Naadja Bus,bus,36.7065499,3.0783466
+N51,Hydra,bus,36.747592,3.0389374
+N52,Ain Benian,bus,36.8015145,2.9107389
+N53,Ardis,bus,36.7393849,3.1371097
+N54,Aeroport Alger,bus,36.7021439,3.2027358
+N55,Ain El Malha,bus,36.690989,3.0565443
+N56,Djenane Sfari Birkhadem,bus,36.684499,3.0572619
+N57,Oued Koriche,bus,36.7853412,3.0419831
+N58,Staoueli,bus,36.7575125,2.8859741
+N59,El Mouradia,bus,36.7491709,3.0481525
+N60,Palais du Peuple,bus,36.7590102,3.0435432
+N61,Bouchaoui,bus,36.7412746,2.9126746
+N62,Sidi Youcef,bus,36.784022,2.9553773
+N63,Ouled Fayet,bus,36.7307925,2.9420572
+N64,Ain Allah,bus,36.7485391,2.991554
+N65,Hopital Militaire,bus,36.7228813,3.0638432
+N66,Rais Hamidou,bus,36.8171872,3.0070159
+N67,Bab Ezzouar,bus,36.7170435,3.1957532
+N68,Sidi Mhamed,bus,36.7592272,3.0446922
+N69,Sidi Moussa,bus,36.6094201,3.0996972
+N70,Reghaia,bus,36.7393237,3.335231
+N71,Ain Taya,bus,36.7929807,3.2904525
+N72,Borj El Bahri,bus,36.7767233,3.248182
+N73,El Kerrouch,bus,36.7388658,3.3301036
+N74,Alger Plage,bus,36.7783978,3.2375043
+N75,Hai El Mahdjer,bus,36.8131914,3.2329861
+N76,Birtouta,bus,36.6464325,2.9834067
+N77,Benchoubane Centre,bus,36.703382,3.2797375
+N78,Zone Industrielle Rouiba,bus,36.7208969,3.2983635
+N79,Tessala El Merdja,bus,36.6277718,2.8992954
+N80,Diar Es Saada,bus,36.7449584,3.0565121
+N81,Cité Abziou 2 Douera,bus,36.6873833,2.9440718
+N82,Baba Hassen,bus,36.6948339,2.9640307
+N83,Ouled Chbel,bus,36.604861,2.9286538
+N84,Cité Chaibia,bus,36.6236475,2.9916832
+N85,Cité 1200 Logts,bus,36.7045048,3.0801444
+N86,Ed Dalia,bus,36.6684691,3.1665858
+N89,Cité 1540 Logts,bus,36.7548227,3.2471057
+N90,Baraki Ronda,bus,36.625284,3.1207625
+N93,Ben Zerga,bus,36.7658245,3.245601
+N96,Chateauneuf,bus,36.7685035,3.0177902
+N100,Gare Ferroviaire Univ,bus,36.691105,2.8685129
+N103,Cité Aslan Atlas,bus,36.6765207,2.8419289
+N104,Sidi Bennour,bus,36.6504724,2.8657976
+N108,Plateau Ain Benian,bus,36.7098495,2.9263708
+T1,حي مختار زرهوني,tram,36.729478,3.174324
+T2,الإقامة الجامعية - ح ج ب 1,tram,36.732251,3.184065
+T3,باب الزوار - الجسر,tram,36.724346,3.184784
+T4,جامعة باب الزوار,tram,36.72081,3.179575
+T5,حي رابية,tram,36.724481,3.17697
+T6,حي المندرين,tram,36.732554,3.173294
+T7,الصنوبر,tram,36.732199,3.167029
+T8,قصر المعارض,tram,36.731269,3.161369
+T9,الديار الخمس,tram,36.725881,3.150803
+T10,بكري بوقرة,tram,36.727811,3.143435
+T11,جسر الحراش,tram,36.730278,3.13016
+T12,طرابلس - المقرية,tram,36.737032,3.113677
+T13,طرابلس - حمداش,tram,36.740719,3.10409
+T14,طرابلس - المسجد,tram,36.743263,3.097413
+T15,المعدومين,tram,36.745993,3.086813
+T16,برج الكيفان - العيادة,tram,36.74816,3.197076
+T17,برج الكيفان - وسط,tram,36.747025,3.191002
+T18,برج الكيفان - الثانوية,tram,36.745327,3.187668
+T19,حي الصباح,tram,36.740974,3.18609
+T20,حي 8 ماي 1945,tram,36.737328,3.184909
+T21,العناصر,tram,36.742878,3.083489
+T22,حي 5 جويلية,tram,36.721527,3.182819
+T23,موحوس,tram,36.749304,3.206485
+T24,الهواء الجميل,tram,36.732817,3.124631
+T25,الخروبة,tram,36.735714,3.118177
+T26,Bellevue,tram,36.729498,3.136052
+T27,طرابلس- الثعالبية,tram,36.745218,3.092295
+T28,بن زرقة,tram,36.773041,3.245156
+T29,ميموني محمود,tram,36.750314,3.211992
+T30,بن مرابط,tram,36.753567,3.220095
+T31,سيدي ادريس,tram,36.766032,3.238426
+T32,مقهى شرقي,tram,36.777453,3.250164
+T33,بن مراد,tram,36.758991,3.229404
+T34,الحي الدبلوماسي,tram,36.773957,3.259356
+T35,درڨانة وسط,tram,36.771973,3.260306
+T36,جامعة درقانة,tram,36.777701,3.258862
+T37,Caroubier - Centre Équestre,tram,36.735744,3.119397
+T38,La Glacière,tram,36.733478,3.124135
+T40,بن رضوان,tram,36.755438,3.224216
+I135,Tafourah Grande Poste / Grande Poste Bus,intersection,36.772698,3.058776
+I136,الهواء الجميل / La Glacière,intersection,36.734513,3.122226
+I137,Bachdjarah (Metro) / Bachdjarah (Bus),intersection,36.723779,3.115004
+I138,Palais du Peuple / Sidi Mhamed,intersection,36.758842,3.04425
+I139,الخروبة / Caroubier - Centre Équestre,intersection,36.736113,3.118711
+I140,Place des Martyrs (Metro) / Place des Martyrs (Bus),intersection,36.786168,3.059735
+I141,Ain Naadja Metro / Cité 1200 Logts,intersection,36.705131,3.079707
+I142,Les Fusilles / العناصر,intersection,36.742934,3.082671
+I143,Hai El Badr (Metro) / Hai El Badr (Bus),intersection,36.724534,3.101334
+I144,Ain Naadja Metro / Ain Naadja Bus,intersection,36.705814,3.078515
+I145,Borj El Bahri / مقهى شرقي,intersection,36.777569,3.24922
+I146,Aissat Idir (Metro) / Place Aissat Idir (Bus),intersection,36.755052,3.060383
+I147,الحي الدبلوماسي / درڨانة وسط,intersection,36.772662,3.259478
+I148,Place Ferhani / Basta Ali,intersection,36.793195,3.052893
+I149,Ain Naadja Bus / Cité 1200 Logts,intersection,36.706012,3.07894
+I150,El Annasser / العناصر,intersection,36.743392,3.085144
+I151,جامعة باب الزوار / حي 5 جويلية,intersection,36.719534,3.180828
+I152,Dergana / Borj El Bahri,intersection,36.778694,3.246918
+I153,برج الكيفان - وسط / برج الكيفان - الثانوية,intersection,36.746522,3.189022
+I154,El Annasser / المعدومين,intersection,36.743975,3.084759
+I155,حي مختار زرهوني / حي المندرين,intersection,36.731339,3.174267
+I156,باب الزوار - الجسر / حي 5 جويلية,intersection,36.722884,3.184252
+I157,1er Mai (Metro) / Place Aissat Idir (Bus),intersection,36.758629,3.057374
+I158,Gare Routiere / طرابلس - حمداش,intersection,36.742219,3.102228
+I159,Gare Routiere / طرابلس - المسجد,intersection,36.741601,3.101606
+I160,Les Fusilles / El Annasser,intersection,36.743572,3.084323
+I161,1er Mai (Metro) / Aissat Idir (Metro),intersection,36.758641,3.06083
+I162,الحي الدبلوماسي / جامعة درقانة,intersection,36.776165,3.259353
+I163,حي الصباح / حي 8 ماي 1945,intersection,36.739131,3.185309
+I164,بن مرابط / بن رضوان,intersection,36.754556,3.222054
+I165,طرابلس - المقرية / الخروبة,intersection,36.735953,3.116392
+I166,Khelifa Boukhalfa / Place Audin,intersection,36.767508,3.051917
+I167,المعدومين / العناصر,intersection,36.744426,3.085237
+I168,Reghaia / El Kerrouch,intersection,36.739485,3.332346
+I169,جامعة باب الزوار / حي رابية,intersection,36.722505,3.177953
+I170,Khelifa Boukhalfa / Station 2 Mai,intersection,36.765603,3.052833
+I171,Dergana / مقهى شرقي,intersection,36.778662,3.247375
+I172,Amirouche / Mer et Soleil,intersection,36.735603,3.096061
+I173,Caroubier - Centre Équestre / La Glacière,intersection,36.734845,3.12193
+I174,المعدومين / طرابلس- الثعالبية,intersection,36.746399,3.089069
+I175,برج الكيفان - الثانوية / حي الصباح,intersection,36.743151,3.186773
+I176,طرابلس - المسجد / طرابلس- الثعالبية,intersection,36.744917,3.094533
+I177,الصنوبر / قصر المعارض,intersection,36.731522,3.164359
+I178,طرابلس - المقرية / Caroubier - Centre Équestre,intersection,36.735755,3.116948
+I179,جسر الحراش / Bellevue,intersection,36.729484,3.133817
+I180,Place Audin / Station 2 Mai,intersection,36.767259,3.053607
+I181,برج الكيفان - العيادة / برج الكيفان - وسط,intersection,36.74776,3.193984
+I182,حي المندرين / الصنوبر,intersection,36.732506,3.170132
+I183,جسر الحراش / الهواء الجميل,intersection,36.730991,3.127028
+I184,الهواء الجميل / Caroubier - Centre Équestre,intersection,36.734526,3.122203
+I185,الإقامة الجامعية - ح ج ب 1 / حي 8 ماي 1945,intersection,36.734894,3.184682
+I186,Les Fusilles / المعدومين,intersection,36.743726,3.084507
+I187,الخروبة / La Glacière,intersection,36.735146,3.121525
+I188,حي مختار زرهوني / حي رابية,intersection,36.726578,3.174639
+I189,بن مراد / بن رضوان,intersection,36.757253,3.226945
+I190,باب الزوار - الجسر / جامعة باب الزوار,intersection,36.723227,3.180818
+I191,Aissat Idir (Metro) / Hamma,intersection,36.755185,3.063844
+I192,1er Mai (Metro) / Station 2 Mai,intersection,36.762206,3.056821
+I193,حي رابية / حي 5 جويلية,intersection,36.722319,3.179727
+I194,Place Audin / Grande Poste Bus,intersection,36.770118,3.055158
+I195,Khelifa Boukhalfa / Place 1er Mai (Bus),intersection,36.762989,3.050458
+I196,Amirouche / طرابلس - المسجد,intersection,36.740565,3.096313
+I197,1er Mai (Metro) / Place 1er Mai (Bus),intersection,36.761695,3.055882
+I198,جسر الحراش / La Glacière,intersection,36.731093,3.127137
+I199,Place 1er Mai (Bus) / Sidi Mhamed,intersection,36.758805,3.04769
+I200,درڨانة وسط / جامعة درقانة,intersection,36.774915,3.25946
+I201,Place 1er Mai (Bus) / Station 2 Mai,intersection,36.763607,3.051971
+I202,طرابلس - حمداش / طرابلس - المسجد,intersection,36.741942,3.100721
+I203,الهواء الجميل / الخروبة,intersection,36.734778,3.121572
+I204,Dergana / Alger Plage,intersection,36.779052,3.241724
+I205,بن زرقة / مقهى شرقي,intersection,36.775785,3.247605
+I206,Hamma / Jardin d Essais,intersection,36.750352,3.069779
+I207,Tafourah Grande Poste / Place Audin,intersection,36.770207,3.055605
+I208,بكري بوقرة / Bellevue,intersection,36.728199,3.140006
+I209,الديار الخمس / بكري بوقرة,intersection,36.726363,3.147691
+I210,Ali Boumendjel / Tafourah Grande Poste,intersection,36.776106,3.057605
+I211,مقهى شرقي / جامعة درقانة,intersection,36.778129,3.254298
+I212,Ben Omar / Station Kouba,intersection,36.727995,3.075955
+I213,برج الكيفان - وسط / حي الصباح,intersection,36.744876,3.187388
+I214,ميموني محمود / بن مرابط,intersection,36.751638,3.215956
+I215,Station 2 Mai / Grande Poste Bus,intersection,36.769231,3.056498
+I216,Amirouche / El Annasser,intersection,36.740253,3.090202
+I217,برج الكيفان - الثانوية / حي 8 ماي 1945,intersection,36.741331,3.18611
+I218,طرابلس - المقرية / طرابلس - حمداش,intersection,36.738837,3.108859

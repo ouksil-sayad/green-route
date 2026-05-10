@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, DollarSign, ChevronRight, Sun, Moon } from "lucide-react";
+import { Clock, DollarSign, ChevronRight, Sun, Moon, Loader2 } from "lucide-react";
 import { useTheme } from "../hooks/use-theme";
 import logoImg from "../../assests/logo.png";
 import AlgiersMap from "../components/AlgiersMap";
 import OptimizerPanel from "../components/OptimizerPanel";
 import MetricCard from "../components/MetricCard";
-import { GraphNode, RouteResult, findOptimalRoute } from "../lib/algiersGraph";
+import { ALGIERS_NODES, GraphNode, RouteResult, setAlgiersNodes, mapBackendToFrontend } from "../lib/algiersGraph";
+import { fetchRoute, fetchNodes } from "../api/api";
 import { toast } from "sonner";
+import NodePicker from "../components/NodePicker";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -19,6 +21,36 @@ export default function Home() {
   const [costWeight, setCostWeight] = useState(33);
   const [co2Weight, setCO2Weight] = useState(34);
   const [previewRoute, setPreviewRoute] = useState<RouteResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [nodesLoading, setNodesLoading] = useState(true);
+
+  const [nodes, setNodes] = useState<GraphNode[]>(ALGIERS_NODES);
+  const [nodePickerOpen, setNodePickerOpen] = useState(false);
+  const [nodePickerType, setNodePickerType] = useState<"start" | "end">("start");
+
+  // Fetch nodes from backend
+  useEffect(() => {
+    const loadNodes = async () => {
+      setNodesLoading(true);
+      const fetchedNodes = await fetchNodes();
+      if (fetchedNodes && fetchedNodes.length > 0) {
+        const mappedNodes: GraphNode[] = fetchedNodes.map((n: any) => ({
+          id: n.id,
+          name: n.name,
+          lat: n.lat,
+          lng: n.lon,
+          type: n.mode === "Walk" ? "transit" : (n.mode === "Bus" ? "transit" : "hub"),
+          mode: n.mode,
+          stop_id: n.stop_id
+        }));
+        setAlgiersNodes(mappedNodes);
+        setNodes(mappedNodes);
+        console.log(`Loaded ${mappedNodes.length} nodes from backend`);
+      }
+      setNodesLoading(false);
+    };
+    loadNodes();
+  }, []);
 
   // Monitor nodes
   useEffect(() => {
@@ -28,11 +60,26 @@ export default function Home() {
   // Auto-calculate route preview
   useEffect(() => {
     if (startNode && endNode && startNode.id !== endNode.id) {
-      // Small timeout to avoid excessive calculations during slider drags
-      const timer = setTimeout(() => {
-        const result = findOptimalRoute(startNode.id, endNode.id, timeWeight, costWeight, co2Weight);
-        setPreviewRoute(result);
-      }, 100);
+      const timer = setTimeout(async () => {
+        try {
+          const response = await fetchRoute({
+            start: startNode.id,
+            end: endNode.id,
+            weights: {
+              time: timeWeight / 100,
+              money: costWeight / 100,
+              co2: co2Weight / 100
+            }
+          });
+          if (response.success && response.route) {
+            setPreviewRoute(mapBackendToFrontend(response.route));
+          } else {
+            setPreviewRoute(null);
+          }
+        } catch (e) {
+          console.error("Preview calculation failed", e);
+        }
+      }, 500);
       return () => clearTimeout(timer);
     } else {
       setPreviewRoute(null);
@@ -51,6 +98,11 @@ export default function Home() {
     }
   };
 
+  const handlePickerOpen = (role: "start" | "end") => {
+    setNodePickerType(role);
+    setNodePickerOpen(true);
+  };
+
   const handleSwap = () => {
     setStartNode(endNode);
     setEndNode(startNode);
@@ -64,30 +116,87 @@ export default function Home() {
     toast.info(`${preset.charAt(0).toUpperCase() + preset.slice(1)} preset applied`);
   };
 
-  const handleFindRoute = () => {
+  const handleFindRoute = async () => {
     if (!startNode || !endNode) return;
     if (startNode.id === endNode.id) {
       toast.error("Start and destination are the same location!");
       return;
     }
-    console.log("Finding route from", startNode.name, "to", endNode.name);
-    const result = findOptimalRoute(startNode.id, endNode.id, timeWeight, costWeight, co2Weight);
-    if (!result) {
-      toast.error("No route found between these locations.");
-      return;
+    
+    setLoading(true);
+
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
+    const normalizedTimeWeight = timeWeight > 1 ? timeWeight / 100 : timeWeight;
+    const normalizedCostWeight = costWeight > 1 ? costWeight / 100 : costWeight;
+    const normalizedCo2Weight = co2Weight > 1 ? co2Weight / 100 : co2Weight;
+
+    const payload = {
+      start: startNode.id,
+      end: endNode.id,
+      weights: {
+        time: normalizedTimeWeight,
+        money: normalizedCostWeight,
+        co2: normalizedCo2Weight
+      }
+    };
+
+    console.log("API_BASE_URL:", API_BASE_URL);
+    console.log("route request payload:", payload);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/route`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      console.log("route response status:", response.status);
+      
+      const data = await response.json();
+      console.log("route response json:", data);
+
+      if (!response.ok) {
+        toast.error(data.message || "Failed to fetch route");
+        setLoading(false);
+        return;
+      }
+
+      if (data.success === false) {
+        toast.error(data.error || "No route found between these locations.");
+        setLoading(false);
+        return;
+      }
+
+      const result = mapBackendToFrontend(data.route);
+      
+      if (!result.coordinates || result.coordinates.length < 2) {
+        console.warn("Route found but no coordinates were returned:", result);
+        toast.warning("Route found but path visualization data is missing.");
+      }
+
+      setPreviewRoute(result);
+      
+      // Navigate to results page
+      navigate("/results", {
+        state: {
+          startNode,
+          endNode,
+          result,
+          timeWeight,
+          costWeight,
+          co2Weight,
+          nodes,
+        },
+      });
+    } catch (e) {
+      toast.error("An unexpected error occurred while finding the route.");
+      console.error(e);
+    } finally {
+      setLoading(false);
     }
-    setPreviewRoute(result);
-    // Navigate to results page
-    navigate("/results", {
-      state: {
-        startNode,
-        endNode,
-        result,
-        timeWeight,
-        costWeight,
-        co2Weight,
-      },
-    });
   };
 
   return (
@@ -139,10 +248,10 @@ export default function Home() {
             <img src={logoImg} alt="Logo" style={{ height: "100%", width: "auto", objectFit: "contain" }} />
           </div>
           <div>
-            <div style={{ fontSize: "15px", fontWeight: 800, color: "var(--neon)", letterSpacing: "-0.01em" }}>
+            <div className="text-res-base font-bold text-[var(--neon)] tracking-tight">
               AlgierRoute
             </div>
-            <div style={{ fontSize: "10px", color: "var(--muted-foreground)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            <div className="text-[9px] text-[var(--muted-foreground)] tracking-wider uppercase font-medium">
               AI Smart Mobility
             </div>
           </div>
@@ -150,14 +259,7 @@ export default function Home() {
 
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           <div
-            style={{
-              fontSize: "11px",
-              padding: "5px 14px",
-              borderRadius: "999px",
-              background: "var(--accent)",
-              border: "1px solid var(--border)",
-              color: "var(--muted-foreground)",
-            }}
+            className="hidden sm:block text-[10px] px-3 py-1 rounded-full bg-[var(--accent)] border border-[var(--border)] text-[var(--muted-foreground)]"
           >
             Algiers, Algeria
           </div>
@@ -184,34 +286,11 @@ export default function Home() {
       </header>
 
       <div
-        className="content-wrapper"
-        style={{
-          height: "calc(100vh - 60px)",
-          width: "100%",
-          display: "flex",
-          flexDirection: "row",
-          marginTop: "60px",
-          overflow: "hidden",
-        }}
+        className="content-wrapper flex flex-col lg:flex-row h-screen lg:h-[calc(100vh-60px)] w-full mt-[60px] overflow-hidden"
       >
-        <div className="main-layout" style={{ 
-          flex: 1, 
-          display: "flex", 
-          flexDirection: "row" 
-        }}>
-        {/* Left Panel */}
-        <div
-          style={{
-            width: "380px",
-            flexShrink: 0,
-            background: "var(--surface)",
-            borderRight: "1px solid var(--border)",
-            overflowY: "auto",
-            padding: "20px 16px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "0",
-          }}
+        {/* Left: Optimizer Panel */}
+        <aside
+          className="w-full lg:w-[360px] xl:w-[380px] shrink-0 bg-[var(--surface)] border-r border-[var(--border)] overflow-y-auto p-4 sm:p-5 flex flex-col gap-4"
         >
           <OptimizerPanel
             startNode={startNode}
@@ -220,6 +299,7 @@ export default function Home() {
             costWeight={costWeight}
             co2Weight={co2Weight}
             selectMode={selectMode}
+            isLoading={loading}
             onTimeWeight={setTimeWeight}
             onCostWeight={setCostWeight}
             onCO2Weight={setCO2Weight}
@@ -227,7 +307,15 @@ export default function Home() {
             onFindRoute={handleFindRoute}
             onSelectModeChange={setSelectMode}
             onPreset={handlePreset}
+            onPickerOpen={handlePickerOpen}
           />
+
+          {nodesLoading && (
+             <div style={{ marginTop: "12px", display: "flex", alignItems: "center", gap: "8px", color: "var(--muted-foreground)", fontSize: "12px" }}>
+               <Loader2 className="animate-spin" size={14} />
+               Loading network nodes...
+             </div>
+          )}
 
           {/* Quick Stats Preview */}
           {startNode && endNode && (
@@ -270,7 +358,7 @@ export default function Home() {
               </div>
             </div>
           )}
-        </div>
+        </aside>
 
         {/* Map Area */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, padding: "20px", gap: "16px" }}>
@@ -302,7 +390,10 @@ export default function Home() {
               {(["start", "end"] as const).map(mode => (
                 <button
                   key={mode}
-                  onClick={() => setSelectMode(mode)}
+                  onClick={() => {
+                    setSelectMode(mode);
+                    handlePickerOpen(mode);
+                  }}
                   style={{
                     padding: "5px 14px",
                     borderRadius: "999px",
@@ -347,10 +438,19 @@ export default function Home() {
               routeResult={previewRoute}
               onNodeSelect={handleNodeSelect}
               selectMode={selectMode}
+              nodes={nodes}
             />
           </div>
         </div>
       </div>
+
+      <NodePicker
+        isOpen={nodePickerOpen}
+        onClose={() => setNodePickerOpen(false)}
+        nodes={nodes}
+        onSelect={(node) => handleNodeSelect(node, nodePickerType)}
+        type={nodePickerType}
+      />
 
       <style>{`
         @media (max-width: 782px) {
@@ -392,7 +492,6 @@ export default function Home() {
           }
         }
       `}</style>
-      </div>
     </div>
   );
 }

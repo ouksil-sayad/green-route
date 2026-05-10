@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "leaflet/dist/leaflet.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -237,13 +238,36 @@
     width: 100%;
     cursor: pointer;
   }
+
+  /* Responsive Typography Utilities */
+  .text-res-xs { font-size: clamp(0.7rem, 1.5vw, 0.75rem); }
+  .text-res-sm { font-size: clamp(0.75rem, 2vw, 0.875rem); }
+  .text-res-base { font-size: clamp(0.875rem, 2.5vw, 1rem); }
+  .text-res-lg { font-size: clamp(1rem, 3vw, 1.125rem); }
+  .text-res-xl { font-size: clamp(1.125rem, 4vw, 1.25rem); }
+  .text-res-2xl { font-size: clamp(1.25rem, 5vw, 1.5rem); }
+  .text-res-3xl { font-size: clamp(1.5rem, 6vw, 2.25rem); }
+
+  /* Layout Utilities */
+  .compact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 0.5rem;
+  }
+  
+  @media (max-width: 640px) {
+    .hide-on-mobile { display: none !important; }
+  }
 }
 
 /* Leaflet overrides */
 .leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
   background: var(--background) !important;
   font-family: "Inter", system-ui, sans-serif;
   transition: background 0.3s ease;
+  z-index: 1;
 }
 .dark .leaflet-tile {
   filter: brightness(0.7) saturate(0.6) hue-rotate(180deg) invert(1) hue-rotate(180deg);

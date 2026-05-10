@@ -20,42 +20,31 @@ export default function MetricCard({
   return (
     <div
       data-cmp="MetricCard"
-      style={{
-        flex: 1,
-        background: "var(--surface-2)",
-        border: `1px solid ${color}33`,
-        borderRadius: "1rem",
-        padding: "16px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "8px",
-        minWidth: 0,
-      }}
+      className="flex-1 min-w-0 p-3 sm:p-4 bg-[var(--surface-2)] border rounded-2xl flex flex-col gap-1.5 sm:gap-2"
+      style={{ borderColor: `${color}33` }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      <div className="flex items-center gap-1.5 sm:gap-2">
         <div
+          className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center border"
           style={{
-            width: "30px",
-            height: "30px",
-            borderRadius: "8px",
             background: dimColor,
-            border: `1px solid ${color}33`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            borderColor: `${color}33`,
           }}
         >
           {icon}
         </div>
-        <span style={{ fontSize: "11px", color: "var(--muted-foreground)", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+        <span className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] font-bold tracking-wider uppercase">
           {label}
         </span>
       </div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
-        <span style={{ fontSize: "26px", fontWeight: 800, color: color, lineHeight: 1 }}>
+      <div className="flex items-baseline gap-1">
+        <span 
+          className="text-res-xl sm:text-res-2xl font-black leading-none"
+          style={{ color: color }}
+        >
           {value}
         </span>
-        <span style={{ fontSize: "12px", color: "var(--muted-foreground)", fontWeight: 500 }}>
+        <span className="text-[10px] sm:text-[11px] text-[var(--muted-foreground)] font-medium">
           {unit}
         </span>
       </div>

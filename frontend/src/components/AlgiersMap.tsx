@@ -1,11 +1,27 @@
-import { useEffect, useRef, useCallback } from "react";
-import { ALGIERS_NODES, GraphNode, RouteResult, nearestNode } from "../lib/algiersGraph";
+import { useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents, CircleMarker } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { ALGIERS_NODES, GraphNode, RouteResult, nearestNode, MODE_COLORS, normalizeMode, getDisplayMode } from "../lib/algiersGraph";
 
-declare global {
-  interface Window {
-    L: any;
-  }
-}
+// Fix for Leaflet default icon issues in React
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+    iconUrl: icon,
+    shadowUrl: iconShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
+// @ts-ignore
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: icon,
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+});
 
 interface AlgiersMapProps {
   startNode?: GraphNode | null;
@@ -13,6 +29,116 @@ interface AlgiersMapProps {
   routeResult?: RouteResult | null;
   onNodeSelect?: (node: GraphNode, role: "start" | "end") => void;
   selectMode?: "start" | "end";
+  nodes?: GraphNode[];
+}
+
+// Helper to normalize coordinates for Leaflet [lat, lng]
+function normalizeCoordinates(coords: any[]): [number, number][] {
+  if (!coords) return [];
+  return coords.map((point: any) => {
+    if (Array.isArray(point)) {
+      return [Number(point[0]), Number(point[1])] as [number, number];
+    }
+    return [Number(point.lat), Number(point.lon ?? point.lng)] as [number, number];
+  }).filter((point) => 
+    point.length === 2 && 
+    !isNaN(point[0]) && 
+    !isNaN(point[1])
+  );
+}
+
+// Helper to fit map bounds to the route
+function FitRouteBounds({ coordinates }: { coordinates: [number, number][] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!coordinates || coordinates.length < 2) return;
+    try {
+      const bounds = L.latLngBounds(coordinates);
+      map.fitBounds(bounds, { padding: [70, 70], maxZoom: 14 });
+    } catch (e) {
+      console.error("Error fitting bounds:", e);
+    }
+  }, [coordinates, map]);
+
+  return null;
+}
+
+// Helper to handle map clicks
+function MapEventsHandler({ onNodeSelect, selectMode }: { onNodeSelect: any, selectMode: any }) {
+  useMapEvents({
+    click(e) {
+      const nearest = nearestNode(e.latlng.lat, e.latlng.lng);
+      console.log(`[Map Click] Nearest: ${nearest.name}`);
+      onNodeSelect(nearest, selectMode);
+    },
+  });
+  return null;
+}
+
+function TransportLegend() {
+  const modes = [
+    { label: "Bus", mode: "bus" },
+    { label: "Tram", mode: "tram" },
+    { label: "Metro", mode: "metro" },
+    { label: "Walk", mode: "walk" }
+  ];
+
+  return (
+    <div 
+      className="absolute bottom-2 right-2 z-[1000] flex items-center flex-wrap gap-2.5 sm:gap-3 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-[var(--card)]/90 backdrop-blur-md rounded-full border border-[var(--border)] shadow-lg pointer-events-auto"
+    >
+      {modes.map((item) => (
+        <div key={item.mode} className="flex items-center gap-1.5">
+          <span
+            className="inline-block w-2 h-2 rounded-full"
+            style={{
+              background: (MODE_COLORS as any)[item.mode],
+              boxShadow: `0 0 4px ${(MODE_COLORS as any)[item.mode]}44`
+            }}
+          />
+          <span className="text-[9px] sm:text-[10px] font-bold text-[var(--foreground)]">{item.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Robust Leaflet resize helper using ResizeObserver
+function LeafletResizeFix({ route }: { route?: any }) {
+  const map = useMap();
+
+  useEffect(() => {
+    const invalidate = () => {
+      console.log("[Map] Robust invalidation...");
+      map.invalidateSize();
+      // Dispatch global resize event as well
+      window.dispatchEvent(new Event('resize'));
+      
+      // Sequence of attempts
+      [100, 300, 800, 1500].forEach(delay => {
+        setTimeout(() => {
+          map.invalidateSize();
+          map.setView(map.getCenter()); // Force tile refresh
+        }, delay);
+      });
+    };
+
+    invalidate();
+
+    window.addEventListener("resize", invalidate);
+
+    const container = map.getContainer();
+    const observer = new ResizeObserver(invalidate);
+    observer.observe(container);
+
+    return () => {
+      window.removeEventListener("resize", invalidate);
+      observer.disconnect();
+    };
+  }, [map, route]);
+
+  return null;
 }
 
 export default function AlgiersMap({
@@ -21,242 +147,187 @@ export default function AlgiersMap({
   routeResult = null,
   onNodeSelect = () => {},
   selectMode = "start",
+  nodes = ALGIERS_NODES,
 }: AlgiersMapProps) {
-  const [isReady, setIsReady] = useState(false);
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<any>(null);
-  const markersRef = useRef<{ marker: any; node: GraphNode }[]>([]);
-  const routeLayerRef = useRef<any>(null);
-  const startMarkerRef = useRef<any>(null);
-  const endMarkerRef = useRef<any>(null);
-  const lastClickRef = useRef<number>(0);
+  const algiersCenter: [number, number] = [36.7538, 3.0588];
+  const algiersBounds: L.LatLngBoundsExpression = [
+    [36.55, 2.65], 
+    [36.95, 3.45]
+  ];
 
-  const initMap = useCallback(() => {
-    if (!mapContainerRef.current || mapRef.current) return;
-    const L = window.L;
-    if (!L) return;
+  // Filtering logic: Show only nodes that are part of the current route result
+  const visibleRouteNodeIds = new Set(
+    routeResult?.path?.map((item: any) => {
+      if (typeof item === "object") return String(item.id ?? item.node_id ?? item.stop_id);
+      return String(item);
+    }) ?? []
+  );
 
-    const algiersCenter: [number, number] = [36.75, 3.06];
-    const map = L.map(mapContainerRef.current, {
-      center: algiersCenter,
-      zoom: 13,
-      minZoom: 12,
-      maxBounds: [
-        [36.65, 2.90], // Southwest
-        [36.85, 3.25]  // Northeast
-      ],
-      zoomControl: true,
-    });
+  const selectedNodeIds = new Set([
+    startNode?.id,
+    endNode?.id,
+  ].filter(Boolean).map(String));
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '© OpenStreetMap',
-    }).addTo(map);
+  const visibleNodeIds = new Set([
+    ...Array.from(visibleRouteNodeIds),
+    ...Array.from(selectedNodeIds)
+  ]);
 
-    mapRef.current = map;
-    console.log("Map instance created");
+  const visibleNodes = routeResult
+    ? nodes.filter((node) =>
+        visibleNodeIds.has(String(node.id))
+      )
+    : [];
 
-    // Draw node markers
-    const newMarkers: { marker: any; node: GraphNode }[] = [];
-    ALGIERS_NODES.forEach(node => {
-      const color = node.type === "hub" ? "#00d4c8" : node.type === "landmark" ? "#8b5cf6" : "#3b82f6";
-      const circleMarker = L.circleMarker([node.lat, node.lng], {
-        radius: node.type === "hub" ? 9 : 7,
-        fillColor: color,
-        color: "rgba(0,0,0,0.5)",
-        weight: 1.5,
-        opacity: 1,
-        fillOpacity: 0.85,
-      }).addTo(map);
+  // Route positions normalization
+  const routePositions = normalizeCoordinates(routeResult?.coordinates || []);
 
-      circleMarker.bindTooltip(node.name, {
-        permanent: false,
-        direction: "top",
-        className: "leaflet-tooltip-custom",
-        offset: [0, -8],
-      });
+  // Check if we have valid segments with coordinates
+  const hasSegmentCoordinates = routeResult?.segments?.some(
+    (segment) => segment.coordinates && segment.coordinates.length > 1
+  );
 
-      newMarkers.push({ marker: circleMarker, node });
-    });
-
-    markersRef.current = newMarkers;
-    setIsReady(true);
-  }, []);
-
+  // Debug logs as requested
   useEffect(() => {
-    const tryInit = () => {
-      if (window.L) {
-        initMap();
-      } else {
-        setTimeout(tryInit, 100);
-      }
-    };
-    tryInit();
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
-    };
-  }, [initMap]);
-
-  // Attach handlers when ready or mode changes
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !isReady) return;
-    
-    console.log(`Setting up handlers for mode: ${selectMode}`);
-
-    const onMapClick = (e: any) => {
-      const now = Date.now();
-      if (now - lastClickRef.current < 300) return;
-      lastClickRef.current = now;
-
-      const nearest = nearestNode(e.latlng.lat, e.latlng.lng);
-      console.log(`[Map Click] ${nearest.name}`);
-      onNodeSelect(nearest, selectMode);
-    };
-
-    map.off("click");
-    map.on("click", onMapClick);
-    
-    markersRef.current.forEach(({ marker, node }) => {
-      marker.off("click");
-      marker.on("click", (e: any) => {
-        window.L.DomEvent.stopPropagation(e);
-        const now = Date.now();
-        if (now - lastClickRef.current < 300) return;
-        lastClickRef.current = now;
-        
-        console.log(`[Marker Click] ${node.name}`);
-        onNodeSelect(node, selectMode);
-      });
-    });
-  }, [isReady, selectMode, onNodeSelect]);
-
-  // Auto-invalidate size when container changes
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapContainerRef.current) return;
-
-    const observer = new ResizeObserver(() => {
-      console.log("Map container resized, invalidating size...");
-      map.invalidateSize();
-    });
-
-    observer.observe(mapContainerRef.current);
-    return () => observer.disconnect();
-  }, [isReady]);
-
-  // Update start/end markers
-  useEffect(() => {
-    const map = mapRef.current;
-    const L = window.L;
-    if (!map || !L) return;
-
-    if (startMarkerRef.current) {
-      map.removeLayer(startMarkerRef.current);
-      startMarkerRef.current = null;
+    if (routeResult) {
+      console.log("route.segments:", routeResult?.segments);
+      console.log("hasSegmentCoordinates:", hasSegmentCoordinates);
+      console.log("routePositions (normalized):", routePositions);
+      console.log("visibleNodes:", visibleNodes);
     }
-    if (startNode) {
-      const icon = L.divIcon({
-        html: `<div style="width:22px;height:22px;border-radius:50%;background:var(--neon);border:3px solid var(--background);box-shadow:0 0 15px rgba(0,212,200,0.9),0 0 30px rgba(0,212,200,0.5);display:flex;align-items:center;justify-content:center;"></div>`,
-        iconSize: [22, 22],
-        iconAnchor: [11, 11],
-        className: "",
-      });
-      startMarkerRef.current = L.marker([startNode.lat, startNode.lng], { icon })
-        .addTo(map)
-        .bindPopup(`<b>FROM:</b> ${startNode.name}`);
-    }
-
-    if (endMarkerRef.current) {
-      map.removeLayer(endMarkerRef.current);
-      endMarkerRef.current = null;
-    }
-    if (endNode) {
-      const icon = L.divIcon({
-        html: `<div style="width:22px;height:22px;border-radius:50%;background:#8b5cf6;border:3px solid var(--background);box-shadow:0 0 15px rgba(139,92,246,0.9),0 0 30px rgba(139,92,246,0.5);display:flex;align-items:center;justify-content:center;"></div>`,
-        iconSize: [22, 22],
-        iconAnchor: [11, 11],
-        className: "",
-      });
-      endMarkerRef.current = L.marker([endNode.lat, endNode.lng], { icon })
-        .addTo(map)
-        .bindPopup(`<b>TO:</b> ${endNode.name}`);
-    }
-  }, [startNode, endNode]);
-
-  // Draw route polyline
-  useEffect(() => {
-    const map = mapRef.current;
-    const L = window.L;
-    if (!map || !L) return;
-
-    if (routeLayerRef.current) {
-      map.removeLayer(routeLayerRef.current);
-      routeLayerRef.current = null;
-    }
-
-    if (routeResult && routeResult.path.length > 1) {
-      const latlngs = routeResult.path.map(n => [n.lat, n.lng]);
-
-      // Outer glow line
-      L.polyline(latlngs, {
-        color: "rgba(0,212,200,0.25)",
-        weight: 14,
-        lineCap: "round",
-        lineJoin: "round",
-      }).addTo(map);
-
-      // Main route line
-      routeLayerRef.current = L.polyline(latlngs, {
-        color: "var(--neon)",
-        weight: 5,
-        lineCap: "round",
-        lineJoin: "round",
-        dashArray: null,
-      }).addTo(map);
-
-      // Fit bounds
-      map.fitBounds(routeLayerRef.current.getBounds(), { padding: [60, 60] });
-    }
-  }, [routeResult]);
+  }, [routeResult, visibleNodes, routePositions, hasSegmentCoordinates]);
 
   return (
-    <div data-cmp="AlgiersMap" style={{ width: "100%", height: "100%", position: "relative" }}>
-      <div ref={mapContainerRef} style={{ width: "100%", height: "100%", borderRadius: "inherit" }} />
-      {/* Legend */}
-      <div
-        style={{
+    <div data-cmp="AlgiersMap" className="absolute inset-0 w-full h-full overflow-hidden rounded-[inherit]">
+      <MapContainer
+        key={`${startNode?.id || "start"}-${endNode?.id || "end"}`}
+        center={algiersCenter}
+        zoom={11}
+        minZoom={10}
+        maxZoom={18}
+        maxBounds={algiersBounds}
+        maxBoundsViscosity={0.8}
+        className="z-[1]"
+        style={{ 
           position: "absolute",
-          bottom: "16px",
-          left: "16px",
-          zIndex: 1000,
-          background: "var(--card)",
-          opacity: 0.9,
-          backdropFilter: "blur(12px)",
-          transition: "background 0.3s ease",
-          border: "1px solid var(--border)",
-          borderRadius: "0.75rem",
-          padding: "10px 14px",
+          top: "-1%",
+          left: "-1%",
+          width: "102%",
+          height: "102%",
+          background: "#000" 
         }}
       >
-        <div style={{ fontSize: "11px", color: "var(--muted-foreground)", marginBottom: "6px", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" }}>Legend</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--neon)" }} />
-            <span style={{ fontSize: "11px", color: "var(--foreground)" }}>Hub</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#8b5cf6" }} />
-            <span style={{ fontSize: "11px", color: "var(--foreground)" }}>Landmark</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#3b82f6" }} />
-            <span style={{ fontSize: "11px", color: "var(--foreground)" }}>Transit</span>
-          </div>
-        </div>
-      </div>
+        <LeafletResizeFix route={routeResult} />
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+
+        <MapEventsHandler onNodeSelect={onNodeSelect} selectMode={selectMode} />
+
+        {/* Dynamic Nodes - filtered to show only route-related nodes */}
+        {visibleNodes.map((node) => {
+          const mode = normalizeMode(node.mode);
+          const color = (MODE_COLORS as any)[mode] || MODE_COLORS.default;
+          
+          return (
+            <CircleMarker
+              key={`${node.id}-${node.lat}-${node.lng}`}
+              center={[node.lat, node.lng]}
+              radius={6}
+              pathOptions={{
+                fillColor: color,
+                color: "rgba(0,0,0,0.5)",
+                weight: 1.5,
+                opacity: 1,
+                fillOpacity: 0.85,
+              }}
+            >
+              <Popup>
+                <div style={{ fontWeight: 700, color: "var(--foreground)" }}>{node.name}</div>
+                <div style={{ fontSize: "11px", color: color, textTransform: "capitalize" }}>Mode: {node.mode || "Unknown"}</div>
+              </Popup>
+            </CircleMarker>
+          );
+        })}
+
+        {/* Route Visualization */}
+        {routeResult && (
+          <>
+            {/* Draw segments if available, otherwise draw full path as fallback */}
+            {hasSegmentCoordinates ? (
+              routeResult.segments?.map((segment, index) => {
+                const positions = normalizeCoordinates(segment.coordinates);
+                if (positions.length < 2) return null;
+
+                const displayMode = getDisplayMode(segment);
+                const color = (MODE_COLORS as any)[displayMode] || MODE_COLORS.default;
+
+                return (
+                  <Polyline
+                    key={`segment-${index}`}
+                    positions={positions}
+                    pathOptions={{
+                      color: color,
+                      weight: displayMode === "walk" ? 5 : 7,
+                      opacity: 0.95,
+                      lineCap: "round",
+                      lineJoin: "round",
+                    }}
+                  />
+                );
+              })
+            ) : (
+              // Fallback to route.coordinates
+              routePositions.length > 1 && (
+                <Polyline
+                  positions={routePositions}
+                  pathOptions={{
+                    color: MODE_COLORS.bus,
+                    weight: 7,
+                    opacity: 0.95,
+                    lineCap: "round",
+                    lineJoin: "round",
+                  }}
+                />
+              )
+            )}
+            
+            <FitRouteBounds coordinates={routePositions.length > 1 ? routePositions : normalizeCoordinates(routeResult.path.map(n => ({ lat: n.lat, lng: n.lng })))} />
+          </>
+        )}
+
+        {/* Selection Markers - visually distinct start/end */}
+        {startNode && (
+          <Marker
+            position={[startNode.lat, startNode.lng]}
+            icon={L.divIcon({
+              html: `<div style="width:28px;height:28px;border-radius:50%;background:#10b981;border:3px solid white;box-shadow:0 0 15px rgba(16,185,129,0.9);display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:8px;">START</div>`,
+              iconSize: [28, 28],
+              iconAnchor: [14, 14],
+              className: "",
+            })}
+          >
+            <Popup><b>DEPARTURE:</b> {startNode.name}</Popup>
+          </Marker>
+        )}
+
+        {endNode && (
+          <Marker
+            position={[endNode.lat, endNode.lng]}
+            icon={L.divIcon({
+              html: `<div style="width:28px;height:28px;border-radius:50%;background:#ef4444;border:3px solid white;box-shadow:0 0 15px rgba(239,68,68,0.9);display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:8px;">END</div>`,
+              iconSize: [28, 28],
+              iconAnchor: [14, 14],
+              className: "",
+            })}
+          >
+            <Popup><b>DESTINATION:</b> {endNode.name}</Popup>
+          </Marker>
+        )}
+      </MapContainer>
+
+      <TransportLegend />
     </div>
   );
 }

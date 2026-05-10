@@ -1,0 +1,30 @@
+Project Dependencies
+====================
+
+Backend (Python) - backend/requirements.txt
+-------------------------------------------
+flask>=3.0.0
+flask-cors>=4.0.0
+networkx>=3.2.0
+pandas>=2.0.0
+pytest>=8.0.0
+
+Frontend Dependencies - frontend/package.json
+---------------------------------------------
+axios ^1.6.0
+framer-motion ^10.16.0
+leaflet ^1.9.4
+react ^18.2.0
+react-dom ^18.2.0
+react-leaflet ^4.2.1
+react-router-dom ^6.30.3
+
+Frontend Dev Dependencies - frontend/package.json
+-------------------------------------------------
+@types/react ^18.2.0
+@types/react-dom ^18.2.0
+@vitejs/plugin-react ^4.2.0
+autoprefixer ^10.4.16
+postcss ^8.4.32
+tailwindcss ^3.4.0
+vite ^5.0.0

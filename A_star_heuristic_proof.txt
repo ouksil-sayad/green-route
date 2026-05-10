@@ -1,0 +1,60 @@
+# Proof of Admissibility for A* Heuristic in Multi-Modal Transit Router
+
+To formally prove that a heuristic function h(n) is admissible, you must demonstrate that it never overestimates the true minimal cost to reach the goal from the current node n. 
+
+In mathematical terms, if C*(n) is the true optimal cost from node n to the goal, the heuristic is admissible if and only if:
+h(n) <= C*(n)  for all nodes n
+
+Here is the step-by-step mathematical derivation and proof.
+
+## 1. Define the True Minimum Cost C*(n)
+Let's assume there exists an optimal path from node n to the Goal. This path will take a certain amount of actual time (Time*), cost a certain actual price (Price*), and emit a certain actual amount of carbon (CO2*).
+
+The true cost of this optimal path is:
+C*(n) = (w1 * Time*) + (w2 * Price*) + (w3 * CO2*)
+
+Note: We assume all user-defined weights (w1, w2, w3) are non-negative (w >= 0).
+
+## 2. Define the Proposed Heuristic h(n)
+We propose the following heuristic based only on the time component, assuming the user travels in a straight line at the absolute maximum speed available in the entire transit network (e.g., the top speed of the Metro).
+
+h(n) = w1 * ( D_euclidean(n, Goal) / v_max )
+
+Where:
+* D_euclidean(n, Goal) is the straight-line distance between the coordinates of node n and the Goal.
+* v_max is the highest speed of any transport mode in the network.
+
+## 3. The Proof (Step-by-Step)
+To prove h(n) <= C*(n), we compare the components of h(n) against the components of the true cost C*(n).
+
+### Step A: Bounding the Distance
+In physical space, the actual route taken (D_actual) must follow roads, tracks, or footpaths. The shortest possible distance between two points in physical space is a straight line. Therefore:
+D_actual >= D_euclidean(n, Goal)
+
+### Step B: Bounding the Time
+The actual time taken (Time*) depends on the distance traveled and the speeds of the various transport modes used, plus waiting times. Even if the user experienced zero wait times and traveled the entire way on the fastest possible vehicle, the time taken could not be less than traveling the straight-line distance at maximum speed. Therefore:
+Time* >= (D_actual / v_max) >= (D_euclidean(n, Goal) / v_max)
+
+### Step C: Bounding Price and CO2
+In public transit, prices are zero (walking) or positive (buying a ticket). Carbon emissions are zero (walking) or positive (buses/trains). Therefore, we know:
+Price* >= 0
+CO2* >= 0
+
+### Step D: Combining the Bounds
+Now, substitute these inequalities back into the true cost equation:
+C*(n) = (w1 * Time*) + (w2 * Price*) + (w3 * CO2*)
+
+Since Price* >= 0 and CO2* >= 0, we can drop them to create an inequality (because removing positive values makes the total smaller or equal):
+C*(n) >= w1 * Time*
+
+Now, substitute our inequality for Time* from Step B:
+C*(n) >= w1 * ( D_euclidean(n, Goal) / v_max )
+
+Look closely at the right side of that equation—it is exactly our proposed heuristic h(n).
+C*(n) >= h(n)
+h(n) <= C*(n)
+
+## Conclusion of the Proof
+Because h(n) is mathematically guaranteed to be less than or equal to the true minimum cost C*(n) under all circumstances, the heuristic function is admissible. 
+
+Therefore, using this heuristic with the A* search algorithm is guaranteed to find the mathematically optimal "Green" multi-modal path according to the user's defined weights.
