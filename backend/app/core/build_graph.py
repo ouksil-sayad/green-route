@@ -30,12 +30,6 @@ MODE_PRICES = {
     "train": 50.0,
     "metro": 50.0,
 }
-MODE_PREFIXES = {
-    "bus": 100000,
-    "tram": 200000,
-    "train": 300000,
-    "metro": 300000,
-}
 MODE_SPEEDS_KMH = {
     "walk": 5.0,
     "bus": 20.0,
@@ -50,9 +44,6 @@ CO2_GRAMS_PER_KM = {
     "train": 20.0,
     "metro": 20.0,
 }
-
-VIRTUAL_WAIT_OFFSET = 50000
-
 
 def _parse_node_id(node_str):
     if pd.isna(node_str):

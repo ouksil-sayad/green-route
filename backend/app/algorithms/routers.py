@@ -51,11 +51,12 @@ def _normalize_weights(weights):
     return w_time / total, w_price / total, w_co2 / total
 
 
-def _edge_cost(edge_data, w_time, w_price, w_co2, scales=None):
+def _edge_cost(edge_data, w_time, w_price, w_co2, scales=None, is_transfer=True):
     scales = scales or {"time": NORM_TIME, "price": NORM_PRICE, "co2": NORM_CO2}
+    edge_price = float(edge_data.get("price", 0.0)) if is_transfer else 0.0
     return (
         w_time * (float(edge_data.get("time", 0.0)) / scales["time"])
-        + w_price * (float(edge_data.get("price", 0.0)) / scales["price"])
+        + w_price * (edge_price / scales["price"])
         + w_co2 * (float(edge_data.get("co2", 0.0)) / scales["co2"])
     )
 
@@ -146,27 +147,16 @@ def _heuristic_cost(
     return max(h_geo, h_alt)
 
 
-def _virtual_mode_and_base(node_id, mode_prefixes):
-    for mode, prefix in mode_prefixes.items():
-        if node_id >= prefix:
-            base = node_id - prefix
-            if base >= 0:
-                return mode, base
-    return None, None
-
-
 class AStarRouter(BaseRouter):
     def __init__(
         self,
         graph,
         node_database,
-        mode_prefixes=None,
         max_speed_kmh=40.0,
         max_total_walk_km=1.0,
         landmark_dists=None,
     ):
         super().__init__(graph, node_database=node_database)
-        self.mode_prefixes = mode_prefixes or {"Bus": 100000, "Tram": 200000, "Train": 300000}
         self.max_speed_kmh = float(max_speed_kmh)
         self.max_total_walk_m = int(round(float(max_total_walk_km) * 1000.0))
         self.landmark_dists = landmark_dists
@@ -185,7 +175,7 @@ class AStarRouter(BaseRouter):
 
         open_heap = []
         tiebreaker = itertools.count()
-        start_state = (start, 0)  # (node_id, walked_meters)
+        start_state = (start, 0, "Walk")  # (node_id, walked_meters, current_mode)
         heapq.heappush(open_heap, (0.0, next(tiebreaker), start_state))
 
         came_from = {}  # state -> prev_state
@@ -197,8 +187,8 @@ class AStarRouter(BaseRouter):
         state_expansions = 0
 
         while open_heap:
-            _, _, (current, walked_m) = heapq.heappop(open_heap)
-            current_state = (current, walked_m)
+            _, _, (current, walked_m, current_mode) = heapq.heappop(open_heap)
+            current_state = (current, walked_m, current_mode)
             if current_state in closed_states:
                 continue
             closed_states.add(current_state)
@@ -235,13 +225,19 @@ class AStarRouter(BaseRouter):
                 }
 
             for _, neighbor, _key, data in self.graph.out_edges(current, keys=True, data=True):
+                edge_mode = str(data.get("mode", "Walk")).strip().capitalize()
+                if edge_mode.lower() == "walk":
+                    edge_mode = "Walk"
+
                 next_walked_m = walked_m + _walk_m(data)
                 if self.max_total_walk_m >= 0 and next_walked_m > self.max_total_walk_m:
                     continue
 
-                neighbor_state = (neighbor, next_walked_m)
+                neighbor_state = (neighbor, next_walked_m, edge_mode)
+                
+                is_transfer = (current_mode != edge_mode)
                 tentative = g_score[current_state] + _edge_cost(
-                    data, w_time, w_price, w_co2, scales=self.cost_scales
+                    data, w_time, w_price, w_co2, scales=self.cost_scales, is_transfer=is_transfer
                 )
                 if tentative < g_score[neighbor_state]:
                     came_from[neighbor_state] = current_state
@@ -260,22 +256,30 @@ class AStarRouter(BaseRouter):
         return None
 
 
-def route_to_json(result, node_database, mode_prefixes=None):
+def route_to_json(result, node_database):
     if not result:
         return {
             "status": "error",
             "message": "No route could be found between these locations.",
         }
 
-    mode_prefixes = mode_prefixes or {"Bus": 100000, "Tram": 200000, "Train": 300000}
-
     total_time = 0.0
     total_co2 = 0.0
     total_price = 0.0
+    
+    prev_calc_mode = "Walk"
     for _u, _v, ed in result["edges"]:
+        mode = str(ed.get("mode", "Walk")).strip().capitalize()
+        if mode.lower() == "walk":
+            mode = "Walk"
+            
         total_time += float(ed.get("time", 0.0))
         total_co2 += float(ed.get("co2", 0.0))
-        total_price += float(ed.get("price", 0.0))
+        
+        if mode != prev_calc_mode:
+            total_price += float(ed.get("price", 0.0))
+            
+        prev_calc_mode = mode
 
     def node_info(nid):
         info = node_database.get(nid) or {}
@@ -307,10 +311,15 @@ def route_to_json(result, node_database, mode_prefixes=None):
         "to_node": start
     })
 
+    prev_step_mode = "Walk"
     for i, (u, v, ed) in enumerate(edges):
         mode = ed.get("mode", "Walk")
         edge_time = float(ed.get("time", 0.0))
-        edge_price = float(ed.get("price", 0.0))
+        
+        raw_price = float(ed.get("price", 0.0))
+        edge_price = raw_price if mode != prev_step_mode else 0.0
+        prev_step_mode = mode
+        
         edge_co2 = float(ed.get("co2", 0.0))
         edge_dist = float(ed.get("distance_km", 0.0))
         edge_geometry = ed.get("geometry", None)

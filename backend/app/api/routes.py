@@ -353,6 +353,7 @@ def astar_route():
             path_ids = result.get("nodes", [])
             
             segments = []
+            prev_mode = "walk"
             # Iterate through consecutive nodes in the A* path to build segments with real edge data
             for i in range(len(path_ids) - 1):
                 u, v = path_ids[i], path_ids[i+1]
@@ -364,7 +365,10 @@ def astar_route():
                 
                 # Get metrics from edge
                 seg_time = float(edge_data.get("time", edge_data.get("weight", 0)))
-                seg_money = float(edge_data.get("money", edge_data.get("cost", edge_data.get("price", 0))))
+                raw_money = float(edge_data.get("money", edge_data.get("cost", edge_data.get("price", 0))))
+                seg_money = raw_money if mode != prev_mode else 0.0
+                prev_mode = mode
+                
                 seg_co2 = float(edge_data.get("co2", 0))
 
                 # Extract coordinates from edge geometry if available
