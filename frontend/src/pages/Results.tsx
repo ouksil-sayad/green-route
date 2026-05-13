@@ -269,7 +269,7 @@ export default function Results() {
               AI is optimizing your route...
             </p>
             <p style={{ fontSize: "13px", color: "var(--muted-foreground)", margin: 0 }}>
-              Running Dijkstra algorithm with weighted priorities
+              Running A* algorithm with weighted priorities
             </p>
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center" }}>
