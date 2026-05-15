@@ -13,12 +13,6 @@ MODE_FREQUENCIES = {
     "metro": 10.0,
 }
 
-MODE_PRICES = {
-    "bus": 50.0,
-    "tram": 50.0,
-    "train": 50.0,
-    "metro": 50.0,
-}
 
 MODE_PREFIXES = {
     "bus": 100000,

@@ -51,11 +51,12 @@ def _normalize_weights(weights):
     return w_time / total, w_price / total, w_co2 / total
 
 
-def _edge_cost(edge_data, w_time, w_price, w_co2, scales=None, is_transfer=True):
+def _edge_cost(edge_data, w_time, w_price, w_co2, scales=None, is_transfer=True, wait_time=0.0):
     scales = scales or {"time": NORM_TIME, "price": NORM_PRICE, "co2": NORM_CO2}
     edge_price = float(edge_data.get("price", 0.0)) if is_transfer else 0.0
+    edge_time = float(edge_data.get("time", 0.0)) + wait_time
     return (
-        w_time * (float(edge_data.get("time", 0.0)) / scales["time"])
+        w_time * (edge_time / scales["time"])
         + w_price * (edge_price / scales["price"])
         + w_co2 * (float(edge_data.get("co2", 0.0)) / scales["co2"])
     )
@@ -147,6 +148,8 @@ def _heuristic_cost(
     return max(h_geo, h_alt)
 
 
+from app.core.config import MODE_FREQUENCIES
+
 def route_to_json(result, node_database):
     if not result:
         return {
@@ -164,7 +167,10 @@ def route_to_json(result, node_database):
         if mode.lower() == "walk":
             mode = "Walk"
             
-        total_time += float(ed.get("time", 0.0))
+        is_boarding = (mode != prev_calc_mode) and mode != "Walk"
+        wait_time = (MODE_FREQUENCIES.get(mode.lower(), 0.0) / 2.0) if is_boarding else 0.0
+        
+        total_time += float(ed.get("time", 0.0)) + wait_time
         total_co2 += float(ed.get("co2", 0.0))
         
         if mode != prev_calc_mode or mode == "Bus":

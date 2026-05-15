@@ -2,6 +2,7 @@ import heapq
 import itertools
 from collections import defaultdict
 from .routers import BaseRouter, _edge_cost, _normalize_weights, _heuristic_cost
+from app.core.config import MODE_FREQUENCIES
 
 class AStarRouter(BaseRouter):
     def __init__(
@@ -92,8 +93,14 @@ class AStarRouter(BaseRouter):
                 neighbor_state = (neighbor, next_walked_m, edge_mode)
                 
                 is_transfer = (current_mode != edge_mode) or edge_mode == "Bus"
+                
+                # Wait time applies only when boarding (switching to a transit mode)
+                is_boarding = (current_mode != edge_mode) and edge_mode != "Walk"
+                wait_time = (MODE_FREQUENCIES.get(edge_mode.lower(), 0.0) / 2.0) if is_boarding else 0.0
+                
                 tentative = g_score[current_state] + _edge_cost(
-                    data, w_time, w_price, w_co2, scales=self.cost_scales, is_transfer=is_transfer
+                    data, w_time, w_price, w_co2, scales=self.cost_scales, 
+                    is_transfer=is_transfer, wait_time=wait_time
                 )
                 if tentative < g_score[neighbor_state]:
                     came_from[neighbor_state] = current_state

@@ -3,6 +3,7 @@ from collections import defaultdict
 import itertools
 from collections import deque
 from .routers import BaseRouter, _edge_cost, _normalize_weights, _heuristic_cost
+from app.core.config import MODE_FREQUENCIES
 
 
 class BidirectionalDijkstraRouter(BaseRouter):
@@ -107,7 +108,11 @@ class BidirectionalDijkstraRouter(BaseRouter):
 
                     neighbor_state = (neighbor, next_walk_fwd, edge_mode)
                     is_transfer = (current_mode_fwd != edge_mode) or edge_mode == "Bus"
-                    step = _edge_cost(data, w_time, w_price, w_co2, scales=self.cost_scales, is_transfer=is_transfer)
+                    
+                    is_boarding = (current_mode_fwd != edge_mode) and edge_mode != "Walk"
+                    wait_time = (MODE_FREQUENCIES.get(edge_mode.lower(), 0.0) / 2.0) if is_boarding else 0.0
+                    
+                    step = _edge_cost(data, w_time, w_price, w_co2, scales=self.cost_scales, is_transfer=is_transfer, wait_time=wait_time)
                     tentative = current_dist + step
                     if tentative < dist_fwd[neighbor_state]:
                         dist_fwd[neighbor_state] = tentative
@@ -148,7 +153,11 @@ class BidirectionalDijkstraRouter(BaseRouter):
                     # we arrived at `current` with (i.e., the backward frontier's mode).
                     predecessor_state = (predecessor, next_walk_bwd, edge_mode)
                     is_transfer = (current_mode_bwd != edge_mode) or edge_mode == "Bus"
-                    step = _edge_cost(data, w_time, w_price, w_co2, scales=self.cost_scales, is_transfer=is_transfer)
+                    
+                    is_boarding = (current_mode_bwd != edge_mode) and edge_mode != "Walk"
+                    wait_time = (MODE_FREQUENCIES.get(edge_mode.lower(), 0.0) / 2.0) if is_boarding else 0.0
+                    
+                    step = _edge_cost(data, w_time, w_price, w_co2, scales=self.cost_scales, is_transfer=is_transfer, wait_time=wait_time)
                     tentative = current_dist + step
                     if tentative < dist_bwd[predecessor_state]:
                         dist_bwd[predecessor_state] = tentative
@@ -507,8 +516,12 @@ class BidirectionalAStarRouter(BaseRouter):
 
                     neighbor_state = (neighbor, next_walk, edge_mode)
                     is_transfer = (current_mode_fwd != edge_mode) or edge_mode == "Bus"
+                    
+                    is_boarding = (current_mode_fwd != edge_mode) and edge_mode != "Walk"
+                    wait_time = (MODE_FREQUENCIES.get(edge_mode.lower(), 0.0) / 2.0) if is_boarding else 0.0
+                    
                     tentative = g_fwd[current_state] + _edge_cost(
-                        data, w_time, w_price, w_co2, scales=self.cost_scales, is_transfer=is_transfer
+                        data, w_time, w_price, w_co2, scales=self.cost_scales, is_transfer=is_transfer, wait_time=wait_time
                     )
                     if tentative < g_fwd[neighbor_state]:
                         g_fwd[neighbor_state] = tentative
@@ -550,8 +563,12 @@ class BidirectionalAStarRouter(BaseRouter):
 
                     pred_state = (predecessor, next_walk, edge_mode)
                     is_transfer = (current_mode_bwd != edge_mode) or edge_mode == "Bus"
+                    
+                    is_boarding = (current_mode_bwd != edge_mode) and edge_mode != "Walk"
+                    wait_time = (MODE_FREQUENCIES.get(edge_mode.lower(), 0.0) / 2.0) if is_boarding else 0.0
+                    
                     tentative = g_bwd[current_state] + _edge_cost(
-                        data, w_time, w_price, w_co2, scales=self.cost_scales, is_transfer=is_transfer
+                        data, w_time, w_price, w_co2, scales=self.cost_scales, is_transfer=is_transfer, wait_time=wait_time
                     )
                     if tentative < g_bwd[pred_state]:
                         g_bwd[pred_state] = tentative
