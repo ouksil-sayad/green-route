@@ -349,52 +349,56 @@ def astar_route():
             if not final_coords or c != final_coords[-1]:
                 final_coords.append(c)
 
-            # Path is node sequence
-            path_ids = result.get("nodes", [])
+        # Path is node sequence
+        path_ids = result.get("nodes", [])
+        
+        segments = []
+        prev_mode = "walk"
+        # Iterate through consecutive nodes in the A* path to build segments with real edge data
+        for i in range(len(path_ids) - 1):
+            u, v = path_ids[i], path_ids[i+1]
+            edge_data = extract_edge_data(G, u, v)
+            from_info = node_database.get(u, {})
+            to_info = node_database.get(v, {})
             
-            segments = []
-            prev_mode = "walk"
-            # Iterate through consecutive nodes in the A* path to build segments with real edge data
-            for i in range(len(path_ids) - 1):
-                u, v = path_ids[i], path_ids[i+1]
-                edge_data = extract_edge_data(G, u, v)
-                from_info = node_database.get(u, {})
-                to_info = node_database.get(v, {})
-                
-                mode, raw_mode = infer_segment_mode(edge_data, from_info, to_info)
-                
-                # Get metrics from edge
-                seg_time = float(edge_data.get("time", edge_data.get("weight", 0)))
-                raw_money = float(edge_data.get("money", edge_data.get("cost", edge_data.get("price", 0))))
-                seg_money = raw_money if mode != prev_mode else 0.0
-                prev_mode = mode
-                
-                seg_co2 = float(edge_data.get("co2", 0))
+            mode, raw_mode = infer_segment_mode(edge_data, from_info, to_info)
+            
+            # Get metrics from edge
+            seg_time = float(edge_data.get("time", edge_data.get("weight", 0)))
+            
+            # More robust price extraction
+            raw_money = float(edge_data.get("price") or edge_data.get("money") or edge_data.get("cost") or 0)
+            
+            # Apply the bus fare rule
+            seg_money = raw_money if (mode != prev_mode or mode == "bus") else 0.0
+            prev_mode = mode
+            
+            seg_co2 = float(edge_data.get("co2", 0))
 
-                # Extract coordinates from edge geometry if available
-                seg_coords = []
-                if edge_data.get("geometry"):
-                    seg_coords = edge_data["geometry"]
-                else:
-                    seg_coords = [[from_info.get("lat", 0), from_info.get("lon", 0)], 
-                                 [to_info.get("lat", 0), to_info.get("lon", 0)]]
+            # Extract coordinates from edge geometry if available
+            seg_coords = []
+            if edge_data.get("geometry"):
+                seg_coords = edge_data["geometry"]
+            else:
+                seg_coords = [[from_info.get("lat", 0), from_info.get("lon", 0)], 
+                             [to_info.get("lat", 0), to_info.get("lon", 0)]]
 
-                segments.append({
-                    "from": from_info.get("name", str(u)),
-                    "to": to_info.get("name", str(v)),
-                    "mode": mode,
-                    "raw_mode": raw_mode,
-                    "distance_km": float(edge_data.get("distance_km", 0)),
-                    "time": seg_time,
-                    "money": seg_money,
-                    "co2": seg_co2,
-                    "coordinates": seg_coords
-                })
+            segments.append({
+                "from": from_info.get("name", str(u)),
+                "to": to_info.get("name", str(v)),
+                "mode": mode,
+                "raw_mode": raw_mode,
+                "distance_km": float(edge_data.get("distance_km", 0)),
+                "time": seg_time,
+                "money": seg_money,
+                "co2": seg_co2,
+                "coordinates": seg_coords
+            })
 
-            # Debug logs for backend verification
-            print(f"A* PATH: {path_ids}")
-            for idx, s in enumerate(segments):
-                print(f"SEGMENT {idx}: {s['from']} -> {s['to']} | mode: {s['mode']} ({s['raw_mode']}) | money: {s['money']} | co2: {s['co2']}")
+        # Debug logs for backend verification
+        print(f"A* PATH: {path_ids}")
+        for idx, s in enumerate(segments):
+            print(f"SEGMENT {idx}: {s['from']} -> {s['to']} | mode: {s['mode']} ({s['raw_mode']}) | money: {s['money']} | co2: {s['co2']}")
 
         response = {
             "success": True,

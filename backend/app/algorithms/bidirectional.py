@@ -40,8 +40,8 @@ class BidirectionalDijkstraRouter(BaseRouter):
                 return 0
             return int(round(dist_km * 1000.0))
 
-        start_state = (start, 0)  # (node_id, walked_meters)
-        end_state = (end, 0)      # (node_id, walked_meters)
+        start_state = (start, 0, "Walk")  # (node_id, walked_meters, current_mode)
+        end_state = (end, 0, "Walk")        # (node_id, walked_meters, current_mode)
 
         dist_fwd = defaultdict(lambda: float("inf"))
         dist_bwd = defaultdict(lambda: float("inf"))
@@ -83,7 +83,7 @@ class BidirectionalDijkstraRouter(BaseRouter):
 
             if expand_forward:
                 current_dist, current_state = heapq.heappop(pq_fwd)
-                current, walked_fwd = current_state
+                current, walked_fwd, current_mode_fwd = current_state
                 if current_dist > dist_fwd[current_state] or current_state in settled_fwd:
                     continue
                 settled_fwd.add(current_state)
@@ -97,13 +97,17 @@ class BidirectionalDijkstraRouter(BaseRouter):
                     _consider_meeting(current_state, bwd_state, total)
 
                 for _, neighbor, _key, data in self.graph.out_edges(current, keys=True, data=True):
+                    edge_mode = str(data.get("mode", "Walk")).strip().capitalize()
+                    if edge_mode.lower() == "walk":
+                        edge_mode = "Walk"
                     walk_step = _walk_m(data)
                     next_walk_fwd = walked_fwd + walk_step
                     if self.walk_cap_enabled and next_walk_fwd > self.max_total_walk_m:
                         continue
 
-                    neighbor_state = (neighbor, next_walk_fwd)
-                    step = _edge_cost(data, w_time, w_price, w_co2, scales=self.cost_scales)
+                    neighbor_state = (neighbor, next_walk_fwd, edge_mode)
+                    is_transfer = (current_mode_fwd != edge_mode) or edge_mode == "Bus"
+                    step = _edge_cost(data, w_time, w_price, w_co2, scales=self.cost_scales, is_transfer=is_transfer)
                     tentative = current_dist + step
                     if tentative < dist_fwd[neighbor_state]:
                         dist_fwd[neighbor_state] = tentative
@@ -117,7 +121,7 @@ class BidirectionalDijkstraRouter(BaseRouter):
                             _consider_meeting(neighbor_state, bwd_state, total)
             else:
                 current_dist, current_state = heapq.heappop(pq_bwd)
-                current, walked_bwd = current_state
+                current, walked_bwd, current_mode_bwd = current_state
                 if current_dist > dist_bwd[current_state] or current_state in settled_bwd:
                     continue
                 settled_bwd.add(current_state)
@@ -131,13 +135,20 @@ class BidirectionalDijkstraRouter(BaseRouter):
                     _consider_meeting(fwd_state, current_state, total)
 
                 for predecessor, _, _key, data in self.graph.in_edges(current, keys=True, data=True):
+                    edge_mode = str(data.get("mode", "Walk")).strip().capitalize()
+                    if edge_mode.lower() == "walk":
+                        edge_mode = "Walk"
                     walk_step = _walk_m(data)
                     next_walk_bwd = walked_bwd + walk_step
                     if self.walk_cap_enabled and next_walk_bwd > self.max_total_walk_m:
                         continue
 
-                    predecessor_state = (predecessor, next_walk_bwd)
-                    step = _edge_cost(data, w_time, w_price, w_co2, scales=self.cost_scales)
+                    # Backward search: the predecessor's outgoing mode IS edge_mode.
+                    # We charge fare only if this edge's mode differs from the mode
+                    # we arrived at `current` with (i.e., the backward frontier's mode).
+                    predecessor_state = (predecessor, next_walk_bwd, edge_mode)
+                    is_transfer = (current_mode_bwd != edge_mode) or edge_mode == "Bus"
+                    step = _edge_cost(data, w_time, w_price, w_co2, scales=self.cost_scales, is_transfer=is_transfer)
                     tentative = current_dist + step
                     if tentative < dist_bwd[predecessor_state]:
                         dist_bwd[predecessor_state] = tentative
@@ -419,8 +430,8 @@ class BidirectionalAStarRouter(BaseRouter):
                 landmark_dists=self.landmark_dists,
             )
 
-        start_state = (start, 0)
-        end_state = (end, 0)
+        start_state = (start, 0, "Walk")  # (node_id, walked_meters, current_mode)
+        end_state = (end, 0, "Walk")        # (node_id, walked_meters, current_mode)
 
         g_fwd = defaultdict(lambda: float("inf"))
         g_bwd = defaultdict(lambda: float("inf"))
@@ -470,7 +481,7 @@ class BidirectionalAStarRouter(BaseRouter):
 
             if expand_forward:
                 _f, _t, current_state = heapq.heappop(open_fwd)
-                current, walked_fwd = current_state
+                current, walked_fwd, current_mode_fwd = current_state
                 if current_state in settled_fwd:
                     continue
                 settled_fwd.add(current_state)
@@ -486,14 +497,18 @@ class BidirectionalAStarRouter(BaseRouter):
                     _consider_meeting(current_state, bwd_state, total)
 
                 for _, neighbor, _key, data in self.graph.out_edges(current, keys=True, data=True):
+                    edge_mode = str(data.get("mode", "Walk")).strip().capitalize()
+                    if edge_mode.lower() == "walk":
+                        edge_mode = "Walk"
                     walk_step = _walk_m(data)
                     next_walk = walked_fwd + walk_step
                     if self.walk_cap_enabled and next_walk > self.max_total_walk_m:
                         continue
 
-                    neighbor_state = (neighbor, next_walk)
+                    neighbor_state = (neighbor, next_walk, edge_mode)
+                    is_transfer = (current_mode_fwd != edge_mode) or edge_mode == "Bus"
                     tentative = g_fwd[current_state] + _edge_cost(
-                        data, w_time, w_price, w_co2, scales=self.cost_scales
+                        data, w_time, w_price, w_co2, scales=self.cost_scales, is_transfer=is_transfer
                     )
                     if tentative < g_fwd[neighbor_state]:
                         g_fwd[neighbor_state] = tentative
@@ -509,7 +524,7 @@ class BidirectionalAStarRouter(BaseRouter):
                             _consider_meeting(neighbor_state, bwd_state, total)
             else:
                 _f, _t, current_state = heapq.heappop(open_bwd)
-                current, walked_bwd = current_state
+                current, walked_bwd, current_mode_bwd = current_state
                 if current_state in settled_bwd:
                     continue
                 settled_bwd.add(current_state)
@@ -525,14 +540,18 @@ class BidirectionalAStarRouter(BaseRouter):
 
                 # Backward search traverses incoming edges, but for reconstruction we keep forward direction.
                 for predecessor, _, _key, data in self.graph.in_edges(current, keys=True, data=True):
+                    edge_mode = str(data.get("mode", "Walk")).strip().capitalize()
+                    if edge_mode.lower() == "walk":
+                        edge_mode = "Walk"
                     walk_step = _walk_m(data)
                     next_walk = walked_bwd + walk_step
                     if self.walk_cap_enabled and next_walk > self.max_total_walk_m:
                         continue
 
-                    pred_state = (predecessor, next_walk)
+                    pred_state = (predecessor, next_walk, edge_mode)
+                    is_transfer = (current_mode_bwd != edge_mode) or edge_mode == "Bus"
                     tentative = g_bwd[current_state] + _edge_cost(
-                        data, w_time, w_price, w_co2, scales=self.cost_scales
+                        data, w_time, w_price, w_co2, scales=self.cost_scales, is_transfer=is_transfer
                     )
                     if tentative < g_bwd[pred_state]:
                         g_bwd[pred_state] = tentative

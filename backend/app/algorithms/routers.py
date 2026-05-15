@@ -235,7 +235,7 @@ class AStarRouter(BaseRouter):
 
                 neighbor_state = (neighbor, next_walked_m, edge_mode)
                 
-                is_transfer = (current_mode != edge_mode)
+                is_transfer = (current_mode != edge_mode) or edge_mode == "Bus"
                 tentative = g_score[current_state] + _edge_cost(
                     data, w_time, w_price, w_co2, scales=self.cost_scales, is_transfer=is_transfer
                 )
@@ -276,7 +276,7 @@ def route_to_json(result, node_database):
         total_time += float(ed.get("time", 0.0))
         total_co2 += float(ed.get("co2", 0.0))
         
-        if mode != prev_calc_mode:
+        if mode != prev_calc_mode or mode == "Bus":
             total_price += float(ed.get("price", 0.0))
             
         prev_calc_mode = mode
@@ -317,7 +317,7 @@ def route_to_json(result, node_database):
         edge_time = float(ed.get("time", 0.0))
         
         raw_price = float(ed.get("price", 0.0))
-        edge_price = raw_price if mode != prev_step_mode else 0.0
+        edge_price = raw_price if (mode != prev_step_mode or mode == "Bus") else 0.0
         prev_step_mode = mode
         
         edge_co2 = float(ed.get("co2", 0.0))

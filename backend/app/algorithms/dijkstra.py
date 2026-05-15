@@ -38,7 +38,7 @@ class DijkstraRouter(BaseRouter):
                 return 0
             return int(round(dist_km * 1000.0))
 
-        start_state = (start, 0)  # (node_id, walked_meters)
+        start_state = (start, 0, "Walk")  # (node_id, walked_meters, current_mode)
         open_heap = [(0.0, start_state)]
         heapq.heapify(open_heap)
 
@@ -52,7 +52,7 @@ class DijkstraRouter(BaseRouter):
 
         while open_heap:
             current_dist, current_state = heapq.heappop(open_heap)
-            current, walked_m = current_state
+            current, walked_m, current_mode = current_state
 
             if current_dist > dist[current_state]:
                 continue
@@ -84,14 +84,21 @@ class DijkstraRouter(BaseRouter):
                     "algorithm": "Dijkstra"
                 }
 
+
             for _, neighbor, _key, data in self.graph.out_edges(current, keys=True, data=True):
+                edge_mode = str(data.get("mode", "Walk")).strip().capitalize()
+                if edge_mode.lower() == "walk":
+                    edge_mode = "Walk"
+
                 next_walked_m = walked_m + _walk_m(data)
                 if self.walk_cap_enabled and next_walked_m > self.max_total_walk_m:
                     continue
 
-                neighbor_state = (neighbor, next_walked_m)
+                neighbor_state = (neighbor, next_walked_m, edge_mode)
+                is_transfer = (current_mode != edge_mode) or edge_mode == "Bus"
                 tentative = dist[current_state] + _edge_cost(
-                    data, w_time, w_price, w_co2, scales=self.cost_scales
+                    data, w_time, w_price, w_co2, scales=self.cost_scales,
+                    is_transfer=is_transfer
                 )
                 if tentative < dist[neighbor_state]:
                     came_from[neighbor_state] = current_state
