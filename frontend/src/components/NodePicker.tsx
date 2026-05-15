@@ -17,14 +17,14 @@ export default function NodePicker({ isOpen, onClose, nodes, onSelect, type }: N
   const filteredNodes = useMemo(() => {
     return nodes.filter((node) => {
       const q = search.toLowerCase();
-      const matchesSearch = 
+      const matchesSearch =
         String(node.name || "").toLowerCase().includes(q) ||
         String(node.mode || "").toLowerCase().includes(q) ||
         String(node.id || "").includes(q) ||
         String(node.stop_id || "").includes(q);
-      
+
       if (!matchesSearch) return false;
-      
+
       if (filterMode === "all") return true;
       return normalizeMode(node.mode) === filterMode;
     });
@@ -33,7 +33,7 @@ export default function NodePicker({ isOpen, onClose, nodes, onSelect, type }: N
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       style={{
         position: "fixed",
         top: 0,
@@ -51,7 +51,7 @@ export default function NodePicker({ isOpen, onClose, nodes, onSelect, type }: N
       }}
       onClick={onClose}
     >
-      <div 
+      <div
         className="w-full max-w-[440px] max-h-[85vh] sm:max-h-[80vh] bg-[var(--card)] rounded-3xl border border-[var(--border)] shadow-2xl flex flex-col overflow-hidden animate-scale-up"
         onClick={e => e.stopPropagation()}
       >
@@ -65,7 +65,7 @@ export default function NodePicker({ isOpen, onClose, nodes, onSelect, type }: N
               Search {nodes.length} available stations & stops
             </p>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-[var(--surface-3)] border-none cursor-pointer flex items-center justify-center text-[var(--muted-foreground)] hover:bg-[var(--accent)] transition-colors"
           >
@@ -76,11 +76,11 @@ export default function NodePicker({ isOpen, onClose, nodes, onSelect, type }: N
         {/* Search & Filter */}
         <div className="p-3 sm:p-4 bg-[var(--surface-2)] flex flex-col gap-2.5 sm:gap-3">
           <div style={{ position: "relative" }}>
-            <Search 
-              size={18} 
-              style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--muted-foreground)" }} 
+            <Search
+              size={18}
+              style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--muted-foreground)" }}
             />
-            <input 
+            <input
               autoFocus
               type="text"
               placeholder="Search station or mode..."
@@ -94,6 +94,7 @@ export default function NodePicker({ isOpen, onClose, nodes, onSelect, type }: N
             {[
               { id: "all", label: "All", icon: <Filter size={10} /> },
               { id: "metro", label: "Metro", icon: <Train size={10} /> },
+              { id: "train", label: "Train", icon: <Train size={10} /> },
               { id: "bus", label: "Bus", icon: <Bus size={10} /> },
               { id: "tram", label: "Tram", icon: <Bus size={10} /> },
               { id: "walk", label: "Walking", icon: <Footprints size={10} /> },
@@ -121,7 +122,7 @@ export default function NodePicker({ isOpen, onClose, nodes, onSelect, type }: N
             filteredNodes.map(node => {
               const mode = normalizeMode(node.mode);
               const color = (MODE_COLORS as any)[mode] || MODE_COLORS.default;
-              
+
               return (
                 <button
                   key={node.id}
@@ -131,16 +132,20 @@ export default function NodePicker({ isOpen, onClose, nodes, onSelect, type }: N
                   }}
                   className="w-full px-3 py-2 sm:px-4 sm:py-2.5 flex items-center gap-3 bg-transparent border-none rounded-xl cursor-pointer text-left transition-all hover:bg-[var(--surface-3)]"
                 >
-                  <div 
+                  <div
                     className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0"
                     style={{ background: `${color}15`, color: color }}
                   >
-                    {mode === "metro" ? <Train size={16} /> : (mode === "bus" ? <Bus size={16} /> : <MapPin size={16} />)}
+                    {mode === "metro" || mode === "train" ? <Train size={16} /> : (mode === "bus" ? <Bus size={16} /> : (mode === "tram" ? <Train size={16} /> : <MapPin size={16} />))}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs sm:text-sm font-bold text-[var(--foreground)] truncate">{node.name}</div>
+                    <div className="text-xs sm:text-sm font-bold text-[var(--foreground)] truncate">
+                      {node.name} — <span className="opacity-70 font-medium">{mode === "metro" ? "Metro" : (mode === "train" ? "Train" : (mode === "tram" ? "Tram" : (node.mode || "Station")))}</span>
+                    </div>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[10px] font-bold capitalize" style={{ color: color }}>{node.mode || "Station"}</span>
+                      <span className="text-[10px] font-bold capitalize" style={{ color: color }}>
+                        {mode === "metro" ? "Metro" : (mode === "train" ? "Train" : (mode === "tram" ? "Tram" : (node.mode || "Station")))}
+                      </span>
                       <span className="w-0.5 h-0.5 rounded-full bg-[var(--muted-foreground)] opacity-50" />
                       <span className="text-[10px] text-[var(--muted-foreground)]">ID: {node.id}</span>
                     </div>
@@ -175,15 +180,15 @@ export default function NodePicker({ isOpen, onClose, nodes, onSelect, type }: N
 
 function ChevronRight({ size, className, style }: { size: number, className?: string, style?: any }) {
   return (
-    <svg 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       className={className}
       style={style}
     >

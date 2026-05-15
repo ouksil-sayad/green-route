@@ -32,6 +32,7 @@ def _parse_node_id(node_str):
         "N": 0,      # base network nodes
         "I": 1000,   # intermediate nodes
         "T": 2000,   # tram stops
+        "R": 3000,   # train stations
     }
     if len(s) >= 2 and s[0].isalpha() and s[1:].isdigit():
         p = s[0].upper()
@@ -60,7 +61,7 @@ def load_graph(nodes_csv_path, edges_csv_path):
     node_database = {}
 
     type_to_mode = {
-        "metro": "Train",
+        "metro": "Metro",
         "bus": "Bus",
         "tram": "Tram",
         "train": "Train",

@@ -62,7 +62,7 @@ def parse_route_request():
     return start, end, weights, None
 
 
-def build_route_response(result, algorithm_name):
+def build_route_response(result, algorithm_name, execution_time_ms=0):
     base = route_to_json(result, node_database)
     if base.get("status") == "error":
         return base
@@ -79,6 +79,14 @@ def build_route_response(result, algorithm_name):
     }
 
     base["price_breakdown"] = price_breakdown
+    
+    # Real performance metrics as requested
+    base["performance"] = {
+        "algorithm": algorithm_name,
+        "execution_time_ms": round(execution_time_ms, 4),
+        "expanded_nodes": result.get("nodes_expanded", 0)
+    }
+
     base["meta"] = {
         "algorithm": algorithm_name,
         "nodes_expanded": result.get("nodes_expanded", 0),
@@ -173,7 +181,8 @@ def infer_segment_mode(edge_data, from_node, to_node):
         v = str(m or "").lower()
         if "bus" in v: return "bus"
         if "tram" in v: return "tram"
-        if "metro" in v or "train" in v: return "metro"
+        if "metro" in v: return "metro"
+        if "train" in v: return "train"
         if any(x in v for x in ["walk", "foot", "pedestrian"]): return "walk"
         return "default"
 
@@ -201,7 +210,8 @@ def infer_segment_mode(edge_data, from_node, to_node):
     if money_val > 0:
         if "bus" in text_blob: return "bus", raw_mode or "inferred_bus"
         if "tram" in text_blob: return "tram", raw_mode or "inferred_tram"
-        if "metro" in text_blob or "train" in text_blob: return "metro", raw_mode or "inferred_metro"
+        if "metro" in text_blob: return "metro", raw_mode or "inferred_metro"
+        if "train" in text_blob: return "train", raw_mode or "inferred_train"
         return "bus", raw_mode or "inferred_transit"
 
     if any(x in text_blob for x in ["walk", "foot"]):
@@ -293,24 +303,39 @@ def astar_route():
         return jsonify({"success": False, "error": f"End node {end_id} not found"}), 404
 
     try:
-        # Soft walking constraint: try <=1km first, then relax only if needed.
-        router = AStarRouter(
-            graph=G,
-            node_database=node_database,
-            max_total_walk_km=1.0,
-            landmark_dists=LANDMARK_DISTS,
-        )
+        # Determine which router to use based on algorithm field
+        algorithm = body.get("algorithm", "astar")
+        
+        def get_router(walk_km):
+            if algorithm == "dijkstra":
+                return DijkstraRouter(graph=G, node_database=node_database, max_total_walk_km=walk_km)
+            elif algorithm == "bidirectional_astar":
+                return BidirectionalAStarRouter(graph=G, node_database=node_database, max_total_walk_km=walk_km, landmark_dists=LANDMARK_DISTS)
+            elif algorithm == "bidirectional_dijkstra":
+                return BidirectionalDijkstraRouter(graph=G, node_database=node_database, max_total_walk_km=walk_km)
+            elif algorithm == "bidirectional_bfs":
+                return BidirectionalBFSRouter(graph=G, node_database=node_database, max_total_walk_km=walk_km)
+            else: # default to astar
+                return AStarRouter(graph=G, node_database=node_database, max_total_walk_km=walk_km, landmark_dists=LANDMARK_DISTS)
+
+        router = get_router(1.0)
+        
+        # Measure only algorithm execution time
+        t_start = time.perf_counter()
         result = router.find_path(start_id, end_id, backend_weights)
+        t_end = time.perf_counter()
+        execution_time_ms = (t_end - t_start) * 1000.0
         
         if result is None:
-            relaxed_router = AStarRouter(
-                graph=G,
-                node_database=node_database,
-                max_total_walk_km=-1.0,
-                landmark_dists=LANDMARK_DISTS,
-            )
+            relaxed_router = get_router(-1.0)
+            t_start_relaxed = time.perf_counter()
             result = relaxed_router.find_path(start_id, end_id, backend_weights)
+            t_end_relaxed = time.perf_counter()
+            execution_time_ms += (t_end_relaxed - t_start_relaxed) * 1000.0
 
+        if result:
+            print(f"Algorithm performance: {algorithm} | {execution_time_ms:.4f} ms | {result.get('nodes_expanded', 0)} nodes")
+        
         if result is None:
             return jsonify({
                 "success": False,
@@ -411,6 +436,11 @@ def astar_route():
                     "money": base_json["metrics"]["total_price_dzd"],
                     "co2": base_json["metrics"]["total_co2_grams"]
                 }
+            },
+            "performance": {
+                "algorithm": result.get("algorithm", body.get("algorithm", "A* Search")),
+                "execution_time_ms": round(execution_time_ms, 4),
+                "expanded_nodes": result.get("nodes_expanded", 0)
             }
         }
         
@@ -436,7 +466,11 @@ def bidirectional_route():
             max_total_walk_km=1.0,
             landmark_dists=LANDMARK_DISTS,
         )
+        t_start = time.perf_counter()
         result = router.find_path(start, end, weights)
+        t_end = time.perf_counter()
+        execution_time_ms = (t_end - t_start) * 1000.0
+
         relaxed_walk_cap = False
         if result is None:
             relaxed_router = BidirectionalAStarRouter(
@@ -445,8 +479,14 @@ def bidirectional_route():
                 max_total_walk_km=-1.0,
                 landmark_dists=LANDMARK_DISTS,
             )
+            t_start_relaxed = time.perf_counter()
             result = relaxed_router.find_path(start, end, weights)
+            t_end_relaxed = time.perf_counter()
+            execution_time_ms += (t_end_relaxed - t_start_relaxed) * 1000.0
             relaxed_walk_cap = result is not None
+        
+        if result:
+            print(f"Algorithm performance: Bidirectional A* | {execution_time_ms:.4f} ms | {result.get('nodes_expanded', 0)} nodes")
         if result is None:
             return jsonify({
                 "status": "error",
@@ -454,7 +494,7 @@ def bidirectional_route():
             }), 404
 
         result["weights"] = weights
-        response = build_route_response(result, "Bidirectional A*")
+        response = build_route_response(result, "Bidirectional A*", execution_time_ms)
 
         meeting_id = result.get("meeting_node")
         response["meta"]["meeting_node"] = meeting_id
@@ -479,19 +519,30 @@ def bidirectional_bfs_route():
 
     try:
         router = BidirectionalBFSRouter(graph=G, node_database=node_database, max_total_walk_km=1.0)
+        t_start = time.perf_counter()
         result = router.find_path(start, end, weights)
+        t_end = time.perf_counter()
+        execution_time_ms = (t_end - t_start) * 1000.0
+
         relaxed_walk_cap = False
         if result is None:
             relaxed_router = BidirectionalBFSRouter(
                 graph=G, node_database=node_database, max_total_walk_km=-1.0
             )
+            t_start_relaxed = time.perf_counter()
             result = relaxed_router.find_path(start, end, weights)
+            t_end_relaxed = time.perf_counter()
+            execution_time_ms += (t_end_relaxed - t_start_relaxed) * 1000.0
             relaxed_walk_cap = result is not None
+        
+        if result:
+            print(f"Algorithm performance: Bidirectional BFS | {execution_time_ms:.4f} ms | {result.get('nodes_expanded', 0)} nodes")
+        
         if result is None:
             return jsonify({"status": "error", "message": "No path found between these two points."}), 404
 
         result["weights"] = weights
-        response = build_route_response(result, "Bidirectional BFS")
+        response = build_route_response(result, "Bidirectional BFS", execution_time_ms)
         meeting_id = result.get("meeting_node")
         response["meta"]["meeting_node"] = meeting_id
         response["meta"]["meeting_name"] = (
@@ -513,19 +564,30 @@ def bidirectional_dijkstra_route():
 
     try:
         router = BidirectionalDijkstraRouter(graph=G, node_database=node_database, max_total_walk_km=1.0)
+        t_start = time.perf_counter()
         result = router.find_path(start, end, weights)
+        t_end = time.perf_counter()
+        execution_time_ms = (t_end - t_start) * 1000.0
+
         relaxed_walk_cap = False
         if result is None:
             relaxed_router = BidirectionalDijkstraRouter(
                 graph=G, node_database=node_database, max_total_walk_km=-1.0
             )
+            t_start_relaxed = time.perf_counter()
             result = relaxed_router.find_path(start, end, weights)
+            t_end_relaxed = time.perf_counter()
+            execution_time_ms += (t_end_relaxed - t_start_relaxed) * 1000.0
             relaxed_walk_cap = result is not None
+        
+        if result:
+            print(f"Algorithm performance: Bidirectional Dijkstra | {execution_time_ms:.4f} ms | {result.get('nodes_expanded', 0)} nodes")
+
         if result is None:
             return jsonify({"status": "error", "message": "No path found between these two points."}), 404
 
         result["weights"] = weights
-        response = build_route_response(result, "Bidirectional Dijkstra")
+        response = build_route_response(result, "Bidirectional Dijkstra", execution_time_ms)
         meeting_id = result.get("meeting_node")
         response["meta"]["meeting_node"] = meeting_id
         response["meta"]["meeting_name"] = (
@@ -548,12 +610,23 @@ def dijkstra_route():
     try:
         # Soft walking constraint: try <=1km first, then relax only if needed.
         router = DijkstraRouter(graph=G, node_database=node_database, max_total_walk_km=1.0)
+        t_start = time.perf_counter()
         result = router.find_path(start, end, weights)
+        t_end = time.perf_counter()
+        execution_time_ms = (t_end - t_start) * 1000.0
+
         relaxed_walk_cap = False
         if result is None:
             relaxed_router = DijkstraRouter(graph=G, node_database=node_database, max_total_walk_km=-1.0)
+            t_start_relaxed = time.perf_counter()
             result = relaxed_router.find_path(start, end, weights)
+            t_end_relaxed = time.perf_counter()
+            execution_time_ms += (t_end_relaxed - t_start_relaxed) * 1000.0
             relaxed_walk_cap = result is not None
+        
+        if result:
+            print(f"Algorithm performance: Dijkstra | {execution_time_ms:.4f} ms | {result.get('nodes_expanded', 0)} nodes")
+
         if result is None:
             return jsonify({
                 "status": "error",
@@ -561,7 +634,7 @@ def dijkstra_route():
             }), 404
 
         result["weights"] = weights
-        response = build_route_response(result, "Dijkstra")
+        response = build_route_response(result, "Dijkstra", execution_time_ms)
         response["meta"]["walk_cap_km"] = 1.0
         response["meta"]["walk_cap_relaxed"] = relaxed_walk_cap
         return jsonify(response), 200

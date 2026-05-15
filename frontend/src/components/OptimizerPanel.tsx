@@ -20,6 +20,9 @@ interface OptimizerPanelProps {
   onSelectModeChange?: (mode: "start" | "end") => void;
   onPreset?: (preset: "fastest" | "cheapest" | "greenest") => void;
   onPickerOpen?: (role: "start" | "end") => void;
+  nodes?: GraphNode[];
+  algorithm?: string;
+  heuristic?: string | null;
 }
 
 

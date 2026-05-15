@@ -22,13 +22,17 @@ interface LocationState {
   costWeight: number;
   co2Weight: number;
   nodes?: GraphNode[];
+  algorithm?: string;
+  heuristic?: string;
+  returnPath?: string;
+  performanceData?: any;
 }
 
 function TransportIcon({ type }: { type: RouteStep["transport"] }) {
   const size = 14;
   const mode = normalizeMode(type) as string;
   if (mode === "bus") return <Bus size={size} />;
-  if (mode === "tram" || mode === "metro") return <Train size={size} />;
+  if (mode === "tram" || mode === "metro" || mode === "train") return <Train size={size} />;
   if (mode === "taxi") return <Car size={size} />;
   return <Footprints size={size} />;
 }
@@ -42,6 +46,7 @@ function transportLabel(type: RouteStep["transport"], line?: string): string {
   const mode = normalizeMode(type);
   if (mode === "bus") return `Bus ${line ?? ""}`;
   if (mode === "metro") return `Metro ${line ?? ""}`;
+  if (mode === "train") return `Train ${line ?? ""}`;
   if (mode === "tram") return `Tram ${line ?? ""}`;
   if (mode === "walk") return "Walk";
   return String(type);
@@ -55,6 +60,7 @@ export default function Results() {
 
   const [loading, setLoading] = useState(true);
   const [activeStep, setActiveStep] = useState(-1);
+  const [showStatsModal, setShowStatsModal] = useState(false);
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
@@ -147,7 +153,18 @@ export default function Results() {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <button
-            onClick={() => navigate("/main")}
+            onClick={() => navigate(state?.returnPath || "/user", {
+              state: {
+                startNode: state?.startNode,
+                endNode: state?.endNode,
+                timeWeight: state?.timeWeight,
+                costWeight: state?.costWeight,
+                co2Weight: state?.co2Weight,
+                nodes: state?.nodes,
+                algorithm: state?.algorithm,
+                heuristic: state?.heuristic
+              }
+            })}
             style={{
               width: "36px",
               height: "36px",
@@ -269,7 +286,7 @@ export default function Results() {
               AI is optimizing your route...
             </p>
             <p style={{ fontSize: "13px", color: "var(--muted-foreground)", margin: 0 }}>
-              Running A* algorithm with weighted priorities
+              Running {state?.algorithm ? (state.algorithm === "astar" ? "A*" : state.algorithm.toUpperCase()) : "A*"} algorithm {state?.heuristic ? `with ${state.heuristic} heuristic` : "with weighted priorities"}
             </p>
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center" }}>
@@ -490,9 +507,49 @@ export default function Results() {
               </div>
             </div>
 
+            {/* Algorithm Performance Button (Admin only) */}
+            {state.returnPath === "/admin" && state.performanceData && (
+              <button
+                onClick={() => setShowStatsModal(true)}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  borderRadius: "0.875rem",
+                  background: "rgba(168, 85, 247, 0.1)",
+                  border: "1px solid rgba(168, 85, 247, 0.3)",
+                  cursor: "pointer",
+                  color: "#a855f7",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  transition: "all 0.2s ease",
+                  marginTop: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px"
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = "rgba(168, 85, 247, 0.2)"}
+                onMouseOut={(e) => e.currentTarget.style.background = "rgba(168, 85, 247, 0.1)"}
+              >
+                <Database size={14} />
+                View Algorithm Performance
+              </button>
+            )}
+
             {/* Back button */}
             <button
-              onClick={() => navigate("/main")}
+              onClick={() => navigate(state.returnPath || "/user", {
+                state: {
+                  startNode: state.startNode,
+                  endNode: state.endNode,
+                  timeWeight: state.timeWeight,
+                  costWeight: state.costWeight,
+                  co2Weight: state.co2Weight,
+                  nodes: state.nodes,
+                  algorithm: state.algorithm,
+                  heuristic: state.heuristic
+                }
+              })}
               style={{
                 width: "100%",
                 padding: "13px",
@@ -504,7 +561,7 @@ export default function Results() {
                 fontSize: "14px",
                 fontWeight: 600,
                 transition: "all 0.2s ease",
-                marginTop: "4px",
+                marginTop: "12px",
               }}
             >
               ← Plan Another Route
@@ -518,7 +575,7 @@ export default function Results() {
                 startNode={startNode}
                 endNode={endNode}
                 routeResult={result}
-                onNodeSelect={() => {}}
+                onNodeSelect={() => { }}
                 selectMode="start"
                 nodes={nodes}
               />
@@ -573,6 +630,101 @@ export default function Results() {
           }
         }
       `}</style>
+
+      {/* Algorithm Performance Modal */}
+      {showStatsModal && state.performanceData && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 10000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+            background: "rgba(0, 0, 0, 0.7)",
+            backdropFilter: "blur(10px)",
+            animation: "fade-in 0.2s ease-out"
+          }}
+          onClick={() => setShowStatsModal(false)}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "400px",
+              background: "var(--card)",
+              borderRadius: "1.5rem",
+              border: "1px solid var(--border)",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+              overflow: "hidden",
+              animation: "scale-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)"
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ padding: "20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--neon)" }} />
+                <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "var(--foreground)" }}>Algorithm Performance</h3>
+              </div>
+              <button
+                onClick={() => setShowStatsModal(false)}
+                style={{ background: "transparent", border: "none", color: "var(--muted-foreground)", cursor: "pointer", padding: "4px" }}
+              >
+                <ArrowLeft size={18} />
+              </button>
+            </div>
+
+            <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div style={{ background: "var(--surface-2)", padding: "12px 16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
+                <div style={{ fontSize: "10px", color: "var(--muted-foreground)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>Selected Algorithm</div>
+                <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--neon)" }}>
+                  {state.performanceData.algorithm === "astar" ? "A* Search" : 
+                   state.performanceData.algorithm === "dijkstra" ? "Dijkstra" : 
+                   state.performanceData.algorithm.replace(/_/g, " ").replace(/\b\w/g, (l: any) => l.toUpperCase())}
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "12px" }}>
+                <div style={{ background: "var(--surface-2)", padding: "12px 16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
+                  <div style={{ fontSize: "10px", color: "var(--muted-foreground)", textTransform: "uppercase", marginBottom: "4px" }}>Time Spent</div>
+                  <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--foreground)" }}>
+                    {state.performanceData.execution_time_ms ? `${state.performanceData.execution_time_ms.toFixed(2)} ms` : "Not available"}
+                  </div>
+                </div>
+                
+                <div style={{ background: "var(--surface-2)", padding: "12px 16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
+                  <div style={{ fontSize: "10px", color: "var(--muted-foreground)", textTransform: "uppercase", marginBottom: "4px" }}>Nodes Expanded</div>
+                  <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--foreground)" }}>
+                    {state.performanceData.expanded_nodes ?? "Not available"}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ padding: "16px 20px", background: "var(--surface-2)", borderTop: "1px solid var(--border)", display: "flex", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => setShowStatsModal(false)}
+                style={{
+                  padding: "8px 20px",
+                  borderRadius: "8px",
+                  background: "var(--neon)",
+                  border: "none",
+                  color: "var(--background)",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  boxShadow: "0 4px 12px rgba(20, 184, 166, 0.3)"
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -14,7 +14,7 @@ export interface GraphEdge {
   timeMins: number;
   costDZD: number;
   co2Grams: number;
-  transport: "walk" | "bus" | "metro" | "taxi";
+  transport: "walk" | "bus" | "metro" | "tram" | "train" | "taxi";
   line?: string;
 }
 
@@ -40,7 +40,7 @@ export interface RouteSegment {
 
 export interface RouteStep {
   instruction: string;
-  transport: "walk" | "bus" | "metro" | "taxi" | string;
+  transport: "walk" | "bus" | "metro" | "tram" | "train" | "taxi" | string;
   from: string;
   to: string;
   timeMins: number;
@@ -54,6 +54,7 @@ export const MODE_COLORS = {
   bus: "#2563eb",
   tram: "#16a34a",
   metro: "#9333ea",
+  train: "#eab308",
   walk: "#f97316",
   default: "#64748b"
 };
@@ -61,10 +62,17 @@ export const MODE_COLORS = {
 export function normalizeMode(mode: any) {
   if (!mode) return "default";
   const value = String(mode).toLowerCase();
+  if (value === "bus") return "bus";
+  if (value === "tram") return "tram";
+  if (value === "metro") return "metro";
+  if (value === "train") return "train";
+  if (value === "walk" || value === "walking" || value === "foot") return "walk";
+  
   if (value.includes("bus")) return "bus";
   if (value.includes("tram")) return "tram";
-  if (value.includes("metro") || value.includes("train")) return "metro";
-  if (value.includes("walk") || value.includes("walking") || value.includes("foot")) return "walk";
+  if (value.includes("metro")) return "metro";
+  if (value.includes("train")) return "train";
+  if (value.includes("walk")) return "walk";
   return "default";
 }
 
@@ -75,7 +83,8 @@ export function getDisplayMode(segment: any) {
   if (rawMode === "walk" && money > 0) {
     const text = `${segment.from || ""} ${segment.to || ""} ${segment.raw_mode || ""}`.toLowerCase();
     if (text.includes("tram")) return "tram";
-    if (text.includes("metro") || text.includes("train")) return "metro";
+    if (text.includes("metro")) return "metro";
+    if (text.includes("train")) return "train";
     if (text.includes("bus")) return "bus";
     return "bus"; // Default to bus if cost > 0 but mode is walk
   }
@@ -108,14 +117,14 @@ export function setAlgiersNodes(nodes: GraphNode[]) {
 
 export function mapBackendToFrontend(backendRoute: any): RouteResult {
   const { path, coordinates, totals, segments } = backendRoute;
-  
+
   const steps: RouteStep[] = segments.map((seg: any) => {
     const displayMode = getDisplayMode(seg);
     let instruction = "";
     if (displayMode === "walk") {
       instruction = `Walk to ${seg.to}`;
-    } else if (["bus", "tram", "metro"].includes(displayMode)) {
-      const modeLabel = displayMode.charAt(0).toUpperCase() + displayMode.slice(1);
+    } else if (["bus", "tram", "metro", "train"].includes(displayMode)) {
+      const modeLabel = displayMode === "metro" ? "Metro" : (displayMode === "train" ? "Train" : displayMode.charAt(0).toUpperCase() + displayMode.slice(1));
       instruction = `Ride ${modeLabel} to ${seg.to}`;
     } else {
       instruction = `Go to ${seg.to}`;

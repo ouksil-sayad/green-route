@@ -12,6 +12,7 @@ declare global {
   const ArrowRight: typeof import('lucide-react').ArrowRight
   const ArrowRightLeft: typeof import('lucide-react').ArrowRightLeft
   const Badge: typeof import('lucide-react').Badge
+  const BarChart3: typeof import('lucide-react').BarChart3
   const Bus: typeof import('lucide-react').Bus
   const Calendar: typeof import('lucide-react').Calendar
   const Car: typeof import('lucide-react').Car
@@ -27,6 +28,7 @@ declare global {
   const CircleIcon: typeof import('lucide-react').CircleIcon
   const Clock: typeof import('lucide-react').Clock
   const Command: typeof import('lucide-react').Command
+  const Database: typeof import('lucide-react').Database
   const DollarSign: typeof import('lucide-react').DollarSign
   const Filter: typeof import('lucide-react').Filter
   const Footprints: typeof import('lucide-react').Footprints
@@ -38,6 +40,7 @@ declare global {
   const Infinity: typeof import('lucide-react').Infinity
   const InfoIcon: typeof import('lucide-react').InfoIcon
   const Leaf: typeof import('lucide-react').Leaf
+  const Link: typeof import('lucide-react').Link
   const List: typeof import('lucide-react').List
   const Loader2: typeof import('lucide-react').Loader2
   const Loader2Icon: typeof import('lucide-react').Loader2Icon
@@ -56,6 +59,7 @@ declare global {
   const Search: typeof import('lucide-react').Search
   const SearchIcon: typeof import('lucide-react').SearchIcon
   const Section: typeof import('lucide-react').Section
+  const Settings: typeof import('lucide-react').Settings
   const Sheet: typeof import('lucide-react').Sheet
   const Sidebar: typeof import('lucide-react').Sidebar
   const Split: typeof import('lucide-react').Split

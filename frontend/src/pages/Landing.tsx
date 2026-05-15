@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import logoImg from "../../assests/logo.png";
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -243,7 +244,7 @@ export default function Landing() {
         </div>
       </div>
 
-      <div
+        <div
         style={{
           position: "relative",
           zIndex: 10,
@@ -255,7 +256,39 @@ export default function Landing() {
           padding: "0 40px",
         }}
       >
-
+        {/* Header with Admin Link */}
+        <header
+          style={{
+            height: "80px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0 0",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+             <img src={logoImg} alt="Logo" style={{ height: "40px", width: "auto" }} />
+             <span style={{ fontWeight: 700, letterSpacing: "1px", color: "#0f172a" }}>AlgierRoute</span>
+          </div>
+          <div 
+            onClick={() => navigate("/admin")}
+            style={{ 
+              fontSize: "12px", 
+              fontWeight: 600, 
+              color: "#64748b", 
+              cursor: "pointer",
+              letterSpacing: "1px",
+              padding: "8px 16px",
+              border: "1px solid #e2e8f0",
+              borderRadius: "4px",
+              transition: "all 0.2s"
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.borderColor = "#3b82f6"}
+            onMouseLeave={(e) => e.currentTarget.style.borderColor = "#e2e8f0"}
+          >
+            ADMIN ACCESS
+          </div>
+        </header>
 
         {/* Main Content */}
         <main
@@ -322,7 +355,7 @@ export default function Landing() {
 
           <button
             className="fade-in-up-4"
-            onClick={() => navigate("/main")}
+            onClick={() => navigate("/user")}
             style={{
               padding: "18px 40px",
               backgroundColor: "#3b82f6", // Primary Blue

@@ -63,6 +63,8 @@ class ErrorBoundary extends React.Component<
 
 import { ThemeProvider } from "./components/theme-provider";
 import Landing from "./pages/Landing";
+import UserPage from "./pages/UserPage";
+import AdminPage from "./pages/AdminPage";
 
 const App = () => (
   <BrowserRouter>
@@ -70,6 +72,8 @@ const App = () => (
       <ErrorBoundary>
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/user" element={<UserPage />} />
+          <Route path="/admin" element={<AdminPage />} />
           <Route path="/main" element={<Home />} />
           <Route path="/results" element={<Results />} />
           <Route path="*" element={<NotFound />} />

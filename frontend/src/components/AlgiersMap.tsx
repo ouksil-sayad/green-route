@@ -9,10 +9,10 @@ import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
 let DefaultIcon = L.icon({
-    iconUrl: icon,
-    shadowUrl: iconShadow,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41]
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41]
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 // @ts-ignore
@@ -40,9 +40,9 @@ function normalizeCoordinates(coords: any[]): [number, number][] {
       return [Number(point[0]), Number(point[1])] as [number, number];
     }
     return [Number(point.lat), Number(point.lon ?? point.lng)] as [number, number];
-  }).filter((point) => 
-    point.length === 2 && 
-    !isNaN(point[0]) && 
+  }).filter((point) =>
+    point.length === 2 &&
+    !isNaN(point[0]) &&
     !isNaN(point[1])
   );
 }
@@ -81,11 +81,12 @@ function TransportLegend() {
     { label: "Bus", mode: "bus" },
     { label: "Tram", mode: "tram" },
     { label: "Metro", mode: "metro" },
+    { label: "Train", mode: "train" },
     { label: "Walk", mode: "walk" }
   ];
 
   return (
-    <div 
+    <div
       className="absolute bottom-2 right-2 z-[1000] flex items-center flex-wrap gap-2.5 sm:gap-3 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-[var(--card)]/90 backdrop-blur-md rounded-full border border-[var(--border)] shadow-lg pointer-events-auto"
     >
       {modes.map((item) => (
@@ -114,7 +115,7 @@ function LeafletResizeFix({ route }: { route?: any }) {
       map.invalidateSize();
       // Dispatch global resize event as well
       window.dispatchEvent(new Event('resize'));
-      
+
       // Sequence of attempts
       [100, 300, 800, 1500].forEach(delay => {
         setTimeout(() => {
@@ -145,13 +146,13 @@ export default function AlgiersMap({
   startNode = null,
   endNode = null,
   routeResult = null,
-  onNodeSelect = () => {},
+  onNodeSelect = () => { },
   selectMode = "start",
   nodes = ALGIERS_NODES,
 }: AlgiersMapProps) {
   const algiersCenter: [number, number] = [36.7538, 3.0588];
   const algiersBounds: L.LatLngBoundsExpression = [
-    [36.55, 2.65], 
+    [36.55, 2.65],
     [36.95, 3.45]
   ];
 
@@ -175,8 +176,8 @@ export default function AlgiersMap({
 
   const visibleNodes = routeResult
     ? nodes.filter((node) =>
-        visibleNodeIds.has(String(node.id))
-      )
+      visibleNodeIds.has(String(node.id))
+    )
     : [];
 
   // Route positions normalization
@@ -208,13 +209,13 @@ export default function AlgiersMap({
         maxBounds={algiersBounds}
         maxBoundsViscosity={0.8}
         className="z-[1]"
-        style={{ 
+        style={{
           position: "absolute",
           top: "-1%",
           left: "-1%",
           width: "102%",
           height: "102%",
-          background: "#000" 
+          background: "#000"
         }}
       >
         <LeafletResizeFix route={routeResult} />
@@ -229,7 +230,7 @@ export default function AlgiersMap({
         {visibleNodes.map((node) => {
           const mode = normalizeMode(node.mode);
           const color = (MODE_COLORS as any)[mode] || MODE_COLORS.default;
-          
+
           return (
             <CircleMarker
               key={`${node.id}-${node.lat}-${node.lng}`}
@@ -245,7 +246,9 @@ export default function AlgiersMap({
             >
               <Popup>
                 <div style={{ fontWeight: 700, color: "var(--foreground)" }}>{node.name}</div>
-                <div style={{ fontSize: "11px", color: color, textTransform: "capitalize" }}>Mode: {node.mode || "Unknown"}</div>
+                <div style={{ fontSize: "11px", color: color, textTransform: "capitalize" }}>
+                  Mode: {mode === "metro" ? "Metro" : (mode === "train" ? "Train" : (mode === "tram" ? "Tram" : (node.mode || "Unknown")))}
+                </div>
               </Popup>
             </CircleMarker>
           );
@@ -292,7 +295,7 @@ export default function AlgiersMap({
                 />
               )
             )}
-            
+
             <FitRouteBounds coordinates={routePositions.length > 1 ? routePositions : normalizeCoordinates(routeResult.path.map(n => ({ lat: n.lat, lng: n.lng })))} />
           </>
         )}

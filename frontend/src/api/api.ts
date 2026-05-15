@@ -9,6 +9,8 @@ export interface ApiRouteRequest {
     money: number;
     co2: number;
   };
+  algorithm?: string;
+  heuristic?: string;
 }
 
 export interface ApiRouteResponse {
@@ -23,6 +25,11 @@ export interface ApiRouteResponse {
       money: number;
       co2: number;
     };
+  };
+  performance?: {
+    algorithm: string;
+    execution_time_ms: number;
+    expanded_nodes: number;
   };
 }
 
