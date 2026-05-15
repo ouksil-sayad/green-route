@@ -45,18 +45,38 @@ def _parse_node_id(node_str):
 
 
 def _parse_geometry(geom_str):
+    """
+    Converts a JSON string of coordinates from the CSV into a Python list.
+    Example: "[[lat, lon], [lat, lon]]" -> [[lat, lon], [lat, lon]]
+    """
     if pd.isna(geom_str):
         return None
     try:
+        # The geometry is stored as a JSON-formatted string in the CSV.
         return json.loads(geom_str)
     except:
+        # If the string is malformed or not JSON, return None to avoid crashing.
         return None
 
 
 def load_graph(nodes_csv_path, edges_csv_path):
+    """
+    Loads nodes and edges from CSV files into a NetworkX MultiDiGraph.
+    
+    Args:
+        nodes_csv_path (str): Path to the nodes.csv file.
+        edges_csv_path (str): Path to the edges.csv file.
+        
+    Returns:
+        tuple: (graph, node_database)
+            - graph (nx.MultiDiGraph): The built directed graph.
+            - node_database (dict): Metadata mapping node_id -> {name, lat, lon, mode}.
+    """
+    # Read raw data from CSV files
     nodes_df = pd.read_csv(nodes_csv_path)
     edges_df = pd.read_csv(edges_csv_path)
 
+    # Initialize the directed graph and the node metadata storage
     graph = nx.MultiDiGraph()
     node_database = {}
 
@@ -67,6 +87,7 @@ def load_graph(nodes_csv_path, edges_csv_path):
         "train": "Train",
     }
 
+    # Step 1: Populate nodes and their metadata
     for _, row in nodes_df.iterrows():
         node_id = _parse_node_id(row[COL_NODE_ID])
         if node_id is None:
@@ -89,6 +110,7 @@ def load_graph(nodes_csv_path, edges_csv_path):
             "stop_id": str(node_id),
         }
 
+    # Step 2: Populate edges and calculate missing metrics
     for _, row in edges_df.iterrows():
         src = _parse_node_id(row[COL_EDGE_SRC])
         tgt = _parse_node_id(row[COL_EDGE_TGT])
@@ -107,10 +129,12 @@ def load_graph(nodes_csv_path, edges_csv_path):
         co2_val = float(row.get(COL_EDGE_CO2, 0.0))
         geometry = _parse_geometry(row.get(COL_EDGE_GEOMETRY, None))
 
+        # If travel time is missing (0), estimate it from distance and typical speed
         if distance_km > 0 and time_val == 0:
             speed = MODE_SPEEDS_KMH.get(mode.lower(), 20.0)
             time_val = (distance_km / speed) * 60.0
 
+        # If CO2 emissions are missing (0), estimate them from distance
         if distance_km > 0 and co2_val == 0:
             co2_per_km = CO2_GRAMS_PER_KM.get(mode.lower(), 89.0)
             co2_val = distance_km * co2_per_km

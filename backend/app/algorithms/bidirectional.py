@@ -112,7 +112,7 @@ class BidirectionalDijkstraRouter(BaseRouter):
                     is_boarding = (current_mode_fwd != edge_mode) and edge_mode != "Walk"
                     wait_time = (MODE_FREQUENCIES.get(edge_mode.lower(), 0.0) / 2.0) if is_boarding else 0.0
                     
-                    step = _edge_cost(data, w_time, w_price, w_co2, scales=self.cost_scales, is_transfer=is_transfer, wait_time=wait_time)
+                    step = _edge_cost(data, w_time, w_price, w_co2, is_transfer=is_transfer, wait_time=wait_time)
                     tentative = current_dist + step
                     if tentative < dist_fwd[neighbor_state]:
                         dist_fwd[neighbor_state] = tentative
@@ -157,7 +157,7 @@ class BidirectionalDijkstraRouter(BaseRouter):
                     is_boarding = (current_mode_bwd != edge_mode) and edge_mode != "Walk"
                     wait_time = (MODE_FREQUENCIES.get(edge_mode.lower(), 0.0) / 2.0) if is_boarding else 0.0
                     
-                    step = _edge_cost(data, w_time, w_price, w_co2, scales=self.cost_scales, is_transfer=is_transfer, wait_time=wait_time)
+                    step = _edge_cost(data, w_time, w_price, w_co2, is_transfer=is_transfer, wait_time=wait_time)
                     tentative = current_dist + step
                     if tentative < dist_bwd[predecessor_state]:
                         dist_bwd[predecessor_state] = tentative
@@ -521,7 +521,7 @@ class BidirectionalAStarRouter(BaseRouter):
                     wait_time = (MODE_FREQUENCIES.get(edge_mode.lower(), 0.0) / 2.0) if is_boarding else 0.0
                     
                     tentative = g_fwd[current_state] + _edge_cost(
-                        data, w_time, w_price, w_co2, scales=self.cost_scales, is_transfer=is_transfer, wait_time=wait_time
+                        data, w_time, w_price, w_co2, is_transfer=is_transfer, wait_time=wait_time
                     )
                     if tentative < g_fwd[neighbor_state]:
                         g_fwd[neighbor_state] = tentative
@@ -568,7 +568,7 @@ class BidirectionalAStarRouter(BaseRouter):
                     wait_time = (MODE_FREQUENCIES.get(edge_mode.lower(), 0.0) / 2.0) if is_boarding else 0.0
                     
                     tentative = g_bwd[current_state] + _edge_cost(
-                        data, w_time, w_price, w_co2, scales=self.cost_scales, is_transfer=is_transfer, wait_time=wait_time
+                        data, w_time, w_price, w_co2, is_transfer=is_transfer, wait_time=wait_time
                     )
                     if tentative < g_bwd[pred_state]:
                         g_bwd[pred_state] = tentative

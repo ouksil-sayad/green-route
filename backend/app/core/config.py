@@ -14,12 +14,6 @@ MODE_FREQUENCIES = {
 }
 
 
-MODE_PREFIXES = {
-    "bus": 100000,
-    "tram": 200000,
-    "train": 300000,
-    "metro": 300000,
-}
 
 MODE_SPEEDS_KMH = {
     "walk": 5.0,

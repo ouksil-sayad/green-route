@@ -270,19 +270,19 @@ def benchmark_astar_heuristics():
 def astar_route():
     body = request.get_json(force=True, silent=True)
     if not body:
-        return jsonify({"success": False, "error": "Request body must be valid JSON"}), 400
+        return jsonify({"status": "error", "message": "Request body must be valid JSON"}), 400
 
     start = body.get("start")
     end = body.get("end")
     weights = body.get("weights")
 
     if start is None or end is None or weights is None:
-        return jsonify({"success": False, "error": "Missing start, end, or weights"}), 400
+        return jsonify({"status": "error", "message": "Missing start, end, or weights"}), 400
 
     required_weights = ["time", "money", "co2"]
     for w in required_weights:
         if w not in weights:
-            return jsonify({"success": False, "error": f"Weight '{w}' is required"}), 400
+            return jsonify({"status": "error", "message": f"Weight '{w}' is required"}), 400
 
     # Adapt weights to backend internal names (money -> price)
     backend_weights = {
@@ -296,12 +296,12 @@ def astar_route():
         start_id = int(start)
         end_id = int(end)
     except (ValueError, TypeError):
-        return jsonify({"success": False, "error": "start and end must be integers or integer strings"}), 400
+        return jsonify({"status": "error", "message": "start and end must be integers or integer strings"}), 400
 
     if G and start_id not in G:
-        return jsonify({"success": False, "error": f"Start node {start_id} not found"}), 404
+        return jsonify({"status": "error", "message": f"Start node {start_id} not found"}), 404
     if G and end_id not in G:
-        return jsonify({"success": False, "error": f"End node {end_id} not found"}), 404
+        return jsonify({"status": "error", "message": f"End node {end_id} not found"}), 404
 
     try:
         # Determine which router to use based on algorithm field
@@ -339,8 +339,8 @@ def astar_route():
         
         if result is None:
             return jsonify({
-                "success": False,
-                "error": "No path found between these two points."
+                "status": "error",
+                "message": "No path found between these two points."
             }), 404
 
         # Convert result to JSON using existing logic
@@ -450,7 +450,7 @@ def astar_route():
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return jsonify({"success": False, "error": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 @api_bp.route("/route/bidirectional", methods=["POST"])

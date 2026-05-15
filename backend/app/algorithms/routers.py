@@ -4,14 +4,17 @@ from collections import defaultdict
 import itertools
 from app.core.config import NORM_TIME, NORM_PRICE, NORM_CO2, MAX_SPEED_KMH
 
+DEFAULT_SCALES = {"time": NORM_TIME, "price": NORM_PRICE, "co2": NORM_CO2}
+
 class BaseRouter:
     def __init__(self, graph, node_database=None):
         self.graph = graph
         self.node_database = node_database or {}
-        # Fixed-dataset mode: use static normalization constants from config.
-        self.cost_scales = {"time": NORM_TIME, "price": NORM_PRICE, "co2": NORM_CO2}
 
     def _reconstruct_path(self, came_from, start, end):
+        """
+        Reconstruct path from came_from dictionary.
+        """
         if end not in came_from and start != end:
             return None
 
@@ -29,15 +32,19 @@ class BaseRouter:
             path.append(start)
         
         path.reverse()
-        if path[0] != start:
-            path = [start] + path
-            
-        if not path or path[0] != start:
-            return None
-            
         return path
 
     def find_path(self, start, end, weight):
+        """
+            pure virtual function , must be implemented by subclass
+            
+            Args:
+                start: start node
+                end: end node
+                weight: weight function
+            Returns:
+                path: path from start to end
+        """
         raise NotImplementedError("Subclasses of BaseRouter must implement find_path")
 
 
@@ -51,18 +58,25 @@ def _normalize_weights(weights):
     return w_time / total, w_price / total, w_co2 / total
 
 
-def _edge_cost(edge_data, w_time, w_price, w_co2, scales=None, is_transfer=True, wait_time=0.0):
-    scales = scales or {"time": NORM_TIME, "price": NORM_PRICE, "co2": NORM_CO2}
+def _edge_cost(edge_data, w_time, w_price, w_co2, is_transfer=True, wait_time=0.0):
     edge_price = float(edge_data.get("price", 0.0)) if is_transfer else 0.0
     edge_time = float(edge_data.get("time", 0.0)) + wait_time
     return (
-        w_time * (edge_time / scales["time"])
-        + w_price * (edge_price / scales["price"])
-        + w_co2 * (float(edge_data.get("co2", 0.0)) / scales["co2"])
+        w_time * (edge_time / DEFAULT_SCALES["time"])
+        + w_price * (edge_price / DEFAULT_SCALES["price"])
+        + w_co2 * (float(edge_data.get("co2", 0.0)) / DEFAULT_SCALES["co2"])
     )
 
 
 def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """
+    Calculate the great circle distance between two points on the earth (Haversine formula).
+    
+    Formula:
+        a = sin²(Δφ/2) + cos φ1 ⋅ cos φ2 ⋅ sin²(Δλ/2)
+        c = 2 ⋅ arcsin(√a)
+        d = R ⋅ c
+    """
     R = 6371.0
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
     dphi = math.radians(lat2 - lat1)
@@ -77,7 +91,7 @@ def _heuristic_cost(
     node_database: dict,
     w_time: float,
     landmark_dists: dict | None = None,
-) -> float:
+    ) -> float:
     """
     Combined ALT + Haversine admissible, consistent heuristic.
 
@@ -151,33 +165,27 @@ def _heuristic_cost(
 from app.core.config import MODE_FREQUENCIES
 
 def route_to_json(result, node_database):
+    """
+    Formats the raw algorithm result into a structured JSON response.
+    
+    Args:
+        result (dict): The output from the search algorithm. Expected keys:
+            - "nodes": List of node IDs in path order.
+            - "edges": List of (u, v, data_dict) tuples. 
+                       data_dict contains: {mode, time, price, co2, geometry}.
+            - "nodes_expanded": Integer count of nodes visited.
+        node_database (dict): Metadata to map node IDs to names/coordinates.
+        
+    Returns:
+        dict: A response object with status, total metrics, and step-by-step route details.
+    """
     if not result:
         return {
             "status": "error",
             "message": "No route could be found between these locations.",
         }
 
-    total_time = 0.0
-    total_co2 = 0.0
-    total_price = 0.0
-    
-    prev_calc_mode = "Walk"
-    for _u, _v, ed in result["edges"]:
-        mode = str(ed.get("mode", "Walk")).strip().capitalize()
-        if mode.lower() == "walk":
-            mode = "Walk"
-            
-        is_boarding = (mode != prev_calc_mode) and mode != "Walk"
-        wait_time = (MODE_FREQUENCIES.get(mode.lower(), 0.0) / 2.0) if is_boarding else 0.0
-        
-        total_time += float(ed.get("time", 0.0)) + wait_time
-        total_co2 += float(ed.get("co2", 0.0))
-        
-        if mode != prev_calc_mode or mode == "Bus":
-            total_price += float(ed.get("price", 0.0))
-            
-        prev_calc_mode = mode
-
+    # Helper to get node details
     def node_info(nid):
         info = node_database.get(nid) or {}
         return {
@@ -187,61 +195,73 @@ def route_to_json(result, node_database):
             "lon": float(info.get("lon", 0.0)),
         }
 
+    # Initialize accumulators and starting state
+    total_time = 0.0
+    total_co2 = 0.0
+    total_price = 0.0
+    prev_mode = "Walk"
+    
+    steps = []
     nodes = result["nodes"]
     edges = result["edges"]
-    if not nodes or len(nodes) < 2:
-        return {"status": "error", "message": "No route could be found between these locations."}
-
-    steps = []
-    start = nodes[0]
-    s = node_info(start)
+    
+    # 1. Create the Starting Step
+    start_nid = nodes[0]
+    s_info = node_info(start_nid)
     steps.append({
-        **s, 
-        "mode": "Walk", 
-        "instruction": f"Start at {s['name']}", 
-        "time": 0.0, 
-        "price": 0.0, 
-        "co2": 0.0, 
-        "distance_km": 0.0, 
-        "geometry": [[s['lat'], s['lon']]],
-        "from_node": start,
-        "to_node": start
+        **s_info,
+        "mode": "Walk",
+        "instruction": f"Start at {s_info['name']}",
+        "time": 0.0, "price": 0.0, "co2": 0.0, "distance_km": 0.0,
+        "geometry": [[s_info['lat'], s_info['lon']]],
+        "from_node": start_nid, "to_node": start_nid
     })
 
-    prev_step_mode = "Walk"
-    for i, (u, v, ed) in enumerate(edges):
-        mode = ed.get("mode", "Walk")
+    # 2. Single Loop: Calculate Totals and Build Steps simultaneously
+    for u, v, ed in edges:
+        # Standardize the transport mode
+        mode = str(ed.get("mode", "Walk")).strip().capitalize()
+        is_boarding = (mode != prev_mode) and mode != "Walk"
+        
+        # Calculate Segment Metrics
+        wait_time = (MODE_FREQUENCIES.get(mode.lower(), 0.0) / 2.0) if is_boarding else 0.0
         edge_time = float(ed.get("time", 0.0))
-        
-        raw_price = float(ed.get("price", 0.0))
-        edge_price = raw_price if (mode != prev_step_mode or mode == "Bus") else 0.0
-        prev_step_mode = mode
-        
         edge_co2 = float(ed.get("co2", 0.0))
         edge_dist = float(ed.get("distance_km", 0.0))
-        edge_geometry = ed.get("geometry", None)
         
-        t = node_info(v)
+        # Charge fare only when boarding or for each bus segment
+        raw_price = float(ed.get("price", 0.0))
+        edge_price = raw_price if (is_boarding or mode == "Bus") else 0.0
         
+        # Update Totals
+        total_time += edge_time + wait_time
+        total_co2 += edge_co2
+        total_price += edge_price
+        
+        # Create Step Instruction
+        t_info = node_info(v)
         if mode == "Walk":
-            instr = f"Walk to {t['name']}"
+            instr = f"Walk to {t_info['name']}"
         elif mode in ("Bus", "Tram", "Train"):
-            instr = f"Ride {mode} to {t['name']}"
+            instr = f"Ride {mode} to {t_info['name']}"
         else:
-            instr = f"Go to {t['name']}"
+            instr = f"Go to {t_info['name']}"
 
+        # Append to the steps list
         steps.append({
-            **t, 
-            "mode": mode, 
-            "instruction": instr, 
-            "time": edge_time, 
-            "price": edge_price, 
-            "co2": edge_co2, 
-            "distance_km": edge_dist, 
-            "geometry": edge_geometry,
+            **t_info,
+            "mode": mode,
+            "instruction": instr,
+            "time": edge_time + wait_time, # Total time for this step including wait
+            "price": edge_price,
+            "co2": edge_co2,
+            "distance_km": edge_dist,
+            "geometry": ed.get("geometry"),
             "from_node": u,
             "to_node": v
         })
+        
+        prev_mode = mode
 
     if len(steps) < 2:
         return {"status": "error", "message": "Insufficient steps in route."}
@@ -251,9 +271,9 @@ def route_to_json(result, node_database):
     for step in steps:
         mode = step.get("mode", "Walk")
         is_transfer = (
-            mode not in ("Walk", "Wait")
+            mode != "Walk"
             and prev_mode is not None
-            and prev_mode not in ("Walk", "Wait")
+            and prev_mode != "Walk"
             and mode != prev_mode
         )
         segments.append({
@@ -263,7 +283,7 @@ def route_to_json(result, node_database):
             "distance_km": step.get("distance_km", 0.0),
             "is_transfer": is_transfer,
         })
-        if mode not in ("Walk", "Wait"):
+        if mode != "Walk":
             prev_mode = mode
 
     for idx in range(len(segments) - 1):

@@ -99,7 +99,7 @@ class AStarRouter(BaseRouter):
                 wait_time = (MODE_FREQUENCIES.get(edge_mode.lower(), 0.0) / 2.0) if is_boarding else 0.0
                 
                 tentative = g_score[current_state] + _edge_cost(
-                    data, w_time, w_price, w_co2, scales=self.cost_scales, 
+                    data, w_time, w_price, w_co2, 
                     is_transfer=is_transfer, wait_time=wait_time
                 )
                 if tentative < g_score[neighbor_state]:
