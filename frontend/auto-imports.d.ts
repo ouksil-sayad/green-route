@@ -71,6 +71,7 @@ declare global {
   const TrendingDown: typeof import('lucide-react').TrendingDown
   const TriangleAlertIcon: typeof import('lucide-react').TriangleAlertIcon
   const User: typeof import('lucide-react').User
+  const View: typeof import('lucide-react').View
   const Wind: typeof import('lucide-react').Wind
   const X: typeof import('lucide-react').X
   const XIcon: typeof import('lucide-react').XIcon
