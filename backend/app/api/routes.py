@@ -2,7 +2,8 @@ import time
 
 # pyrefly: ignore [missing-import]
 from flask import Blueprint, request, jsonify
-from app.algorithms.routers import AStarRouter, route_to_json, _edge_cost, _normalize_weights
+from app.algorithms.astar import AStarRouter
+from app.algorithms.routers import route_to_json, _edge_cost, _normalize_weights
 from app.algorithms.bidirectional import (
     BidirectionalAStarRouter,
     BidirectionalBFSRouter,
