@@ -32,7 +32,7 @@ N30,Baraki,bus,36.6732592,3.0861148
 N31,Eucalyptus,bus,36.6605334,3.1549701
 N32,Dergana,bus,36.7773066,3.2447855
 N33,Rouiba,bus,36.7404564,3.2837829
-N34,Zeralda GR,bus,36.7130577,2.8349928
+N34,Zeralda ,bus,36.7130577,2.8349928
 N35,Sidi Abd Allah,bus,36.6903526,2.8526478
 N36,Ben Aknoun,bus,36.7529778,3.0057505
 N37,Chevalley,bus,36.7693958,3.0059946
@@ -88,7 +88,7 @@ N89,Cité 1540 Logts,bus,36.7548227,3.2471057
 N90,Baraki Ronda,bus,36.625284,3.1207625
 N93,Ben Zerga,bus,36.7658245,3.245601
 N96,Chateauneuf,bus,36.7685035,3.0177902
-N100,Gare Ferroviaire Univ,bus,36.691105,2.8685129
+N100,Sidi abd allah Train(bus),bus,36.691605,2.87098
 N103,Cité Aslan Atlas,bus,36.6765207,2.8419289
 N104,Sidi Bennour,bus,36.6504724,2.8657976
 N108,Plateau Ain Benian,bus,36.7098495,2.9263708
@@ -405,3 +405,6 @@ I373,Khelifa Boukhalfa / 1er Mai (Metro),intersection,36.764306,3.056038
 I374,بن زرقة / سيدي ادريس,intersection,36.769701,3.241469
 I375,الإقامة الجامعية - ح ج ب 1 / حي الصباح,intersection,36.736437,3.183983
 I376,طرابلس - المسجد / المعدومين,intersection,36.744772,3.092036
+N120,Zeralda Gare de train(bus),bus,36.701841,2.848742
+I377,Sidi Abd Allah / Sidi abd allah Train(bus),intersection,36.692053,2.861882
+I378,Sidi Abd Allah / Pôle universitaire Sidi Abdellah,intersection,36.692113,2.862127
