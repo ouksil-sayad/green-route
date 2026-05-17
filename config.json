@@ -1,0 +1,38 @@
+{
+  "routes": [
+    {
+      "path": "/",
+      "src": "src/pages/Home.tsx"
+    },
+    {
+      "path": "/results",
+      "src": "src/pages/Results.tsx"
+    },
+    {
+      "path": "*",
+      "src": "src/pages/NotFound.tsx"
+    }
+  ],
+  "components": [
+    {
+      "name": "AlgiersMap",
+      "src": "src/components/AlgiersMap.tsx",
+      "route": "/preview/algiers-map"
+    },
+    {
+      "name": "JourneyCard",
+      "src": "src/components/JourneyCard.tsx",
+      "route": "/preview/journey-card"
+    },
+    {
+      "name": "MetricCard",
+      "src": "src/components/MetricCard.tsx",
+      "route": "/preview/metric-card"
+    },
+    {
+      "name": "OptimizerPanel",
+      "src": "src/components/OptimizerPanel.tsx",
+      "route": "/preview/optimizer-panel"
+    }
+  ]
+}
