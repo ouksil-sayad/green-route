@@ -282,31 +282,9 @@ export default function Results() {
             />
           </div>
           <div style={{ textAlign: "center" }}>
-            <p style={{ fontSize: "20px", fontWeight: 700, color: "var(--foreground)", margin: "0 0 8px 0" }}>
+            <p style={{ fontSize: "20px", fontWeight: 700, color: "var(--foreground)", margin: "0 0 16px 0" }}>
               AI is optimizing your route...
             </p>
-            <p style={{ fontSize: "13px", color: "var(--muted-foreground)", margin: 0 }}>
-              Running {state?.algorithm ? (state.algorithm === "astar" ? "A*" : state.algorithm.toUpperCase()) : "A*"} algorithm {state?.heuristic ? `with ${state.heuristic} heuristic` : "with weighted priorities"}
-            </p>
-          </div>
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center" }}>
-            {["Analyzing nodes", "Weighing paths", "Optimizing CO₂", "Finalizing route"].map((step, i) => (
-              <div
-                key={step}
-                style={{
-                  fontSize: "11px",
-                  padding: "5px 12px",
-                  borderRadius: "999px",
-                  background: "var(--surface-2)",
-                  border: "1px solid var(--border)",
-                  color: "var(--muted-foreground)",
-                  animation: `float-up 0.4s ease-out ${i * 0.15}s forwards`,
-                  opacity: 0,
-                }}
-              >
-                {step}
-              </div>
-            ))}
           </div>
         </div>
       )}
@@ -681,9 +659,9 @@ export default function Results() {
               <div style={{ background: "var(--surface-2)", padding: "12px 16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
                 <div style={{ fontSize: "10px", color: "var(--muted-foreground)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>Selected Algorithm</div>
                 <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--neon)" }}>
-                  {state.performanceData.algorithm === "astar" ? "A* Search" : 
-                   state.performanceData.algorithm === "dijkstra" ? "Dijkstra" : 
-                   state.performanceData.algorithm.replace(/_/g, " ").replace(/\b\w/g, (l: any) => l.toUpperCase())}
+                  {state.performanceData.algorithm === "astar" ? "A* Search" :
+                    state.performanceData.algorithm === "dijkstra" ? "Dijkstra" :
+                      state.performanceData.algorithm.replace(/_/g, " ").replace(/\b\w/g, (l: any) => l.toUpperCase())}
                 </div>
               </div>
 
@@ -694,7 +672,7 @@ export default function Results() {
                     {state.performanceData.execution_time_ms ? `${state.performanceData.execution_time_ms.toFixed(2)} ms` : "Not available"}
                   </div>
                 </div>
-                
+
                 <div style={{ background: "var(--surface-2)", padding: "12px 16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
                   <div style={{ fontSize: "10px", color: "var(--muted-foreground)", textTransform: "uppercase", marginBottom: "4px" }}>Nodes Expanded</div>
                   <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--foreground)" }}>

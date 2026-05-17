@@ -87,7 +87,23 @@ function TransportLegend() {
 
   return (
     <div
-      className="absolute bottom-2 right-2 z-[1000] flex items-center flex-wrap gap-2.5 sm:gap-3 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-[var(--card)]/90 backdrop-blur-md rounded-full border border-[var(--border)] shadow-lg pointer-events-auto"
+      style={{
+        position: "absolute",
+        bottom: "80px",
+        right: "12px",
+        zIndex: 1000,
+        display: "flex",
+        alignItems: "center",
+        flexWrap: "wrap",
+        gap: "10px",
+        padding: "6px 12px",
+        background: "rgba(255,255,255,0.92)",
+        backdropFilter: "blur(12px)",
+        borderRadius: "10px",
+        border: "1px solid rgba(17,73,49,0.1)",
+        boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+        pointerEvents: "auto",
+      }}
     >
       {modes.map((item) => (
         <div key={item.mode} className="flex items-center gap-1.5">
@@ -95,10 +111,9 @@ function TransportLegend() {
             className="inline-block w-2 h-2 rounded-full"
             style={{
               background: (MODE_COLORS as any)[item.mode],
-              boxShadow: `0 0 4px ${(MODE_COLORS as any)[item.mode]}44`
             }}
           />
-          <span className="text-[9px] sm:text-[10px] font-bold text-[var(--foreground)]">{item.label}</span>
+          <span style={{ fontSize: "10px", fontWeight: 700, color: "#1a2e24" }}>{item.label}</span>
         </div>
       ))}
     </div>
@@ -152,8 +167,8 @@ export default function AlgiersMap({
 }: AlgiersMapProps) {
   const algiersCenter: [number, number] = [36.7538, 3.0588];
   const algiersBounds: L.LatLngBoundsExpression = [
-    [36.55, 2.65],
-    [36.95, 3.45]
+    [36.40, 2.50],
+    [37.05, 3.60]
   ];
 
   // Filtering logic: Show only nodes that are part of the current route result
@@ -199,7 +214,7 @@ export default function AlgiersMap({
   }, [routeResult, visibleNodes, routePositions, hasSegmentCoordinates]);
 
   return (
-    <div data-cmp="AlgiersMap" className="absolute inset-0 w-full h-full overflow-hidden rounded-[inherit]">
+    <div data-cmp="AlgiersMap" className="absolute inset-0 w-full h-full overflow-hidden">
       <MapContainer
         key={`${startNode?.id || "start"}-${endNode?.id || "end"}`}
         center={algiersCenter}
@@ -207,15 +222,14 @@ export default function AlgiersMap({
         minZoom={10}
         maxZoom={18}
         maxBounds={algiersBounds}
-        maxBoundsViscosity={0.8}
+        maxBoundsViscosity={0.9}
+        zoomControl={false}
         className="z-[1]"
         style={{
           position: "absolute",
-          top: "-1%",
-          left: "-1%",
-          width: "102%",
-          height: "102%",
-          background: "#000"
+          inset: 0,
+          width: "100%",
+          height: "100%",
         }}
       >
         <LeafletResizeFix route={routeResult} />
@@ -319,7 +333,7 @@ export default function AlgiersMap({
           <Marker
             position={[endNode.lat, endNode.lng]}
             icon={L.divIcon({
-              html: `<div style="width:28px;height:28px;border-radius:50%;background:#ef4444;border:3px solid white;box-shadow:0 0 15px rgba(239,68,68,0.9);display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:8px;">END</div>`,
+              html: `<div style="width:28px;height:28px;border-radius:50%;background:#ef4444;border:3px solid white;box-shadow:0 0 12px rgba(239,68,68,0.7);display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:8px;">END</div>`,
               iconSize: [28, 28],
               iconAnchor: [14, 14],
               className: "",

@@ -19,10 +19,12 @@ declare global {
   const Check: typeof import('lucide-react').Check
   const CheckCircle: typeof import('lucide-react').CheckCircle
   const CheckIcon: typeof import('lucide-react').CheckIcon
+  const ChevronDown: typeof import('lucide-react').ChevronDown
   const ChevronDownIcon: typeof import('lucide-react').ChevronDownIcon
   const ChevronLeftIcon: typeof import('lucide-react').ChevronLeftIcon
   const ChevronRight: typeof import('lucide-react').ChevronRight
   const ChevronRightIcon: typeof import('lucide-react').ChevronRightIcon
+  const ChevronUp: typeof import('lucide-react').ChevronUp
   const ChevronUpIcon: typeof import('lucide-react').ChevronUpIcon
   const CircleCheckIcon: typeof import('lucide-react').CircleCheckIcon
   const CircleIcon: typeof import('lucide-react').CircleIcon
@@ -30,6 +32,8 @@ declare global {
   const Command: typeof import('lucide-react').Command
   const Database: typeof import('lucide-react').Database
   const DollarSign: typeof import('lucide-react').DollarSign
+  const Eye: typeof import('lucide-react').Eye
+  const EyeOff: typeof import('lucide-react').EyeOff
   const Filter: typeof import('lucide-react').Filter
   const Footprints: typeof import('lucide-react').Footprints
   const Form: typeof import('lucide-react').Form
@@ -62,6 +66,7 @@ declare global {
   const Settings: typeof import('lucide-react').Settings
   const Sheet: typeof import('lucide-react').Sheet
   const Sidebar: typeof import('lucide-react').Sidebar
+  const Sliders: typeof import('lucide-react').Sliders
   const Split: typeof import('lucide-react').Split
   const Sun: typeof import('lucide-react').Sun
   const Suspense: typeof import('react').Suspense

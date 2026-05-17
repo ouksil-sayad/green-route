@@ -133,7 +133,7 @@ export default function Home() {
       toast.error("Start and destination are the same location!");
       return;
     }
-    
+
     setLoading(true);
 
     const normalizedTimeWeight = timeWeight > 1 ? timeWeight / 100 : timeWeight;
@@ -169,14 +169,14 @@ export default function Home() {
       }
 
       const result = mapBackendToFrontend(data.route);
-      
+
       if (!result.coordinates || result.coordinates.length < 2) {
         console.warn("Route found but no coordinates were returned:", result);
         toast.warning("Route found but path visualization data is missing.");
       }
 
       setPreviewRoute(result);
-      
+
       // Navigate to results page
       navigate("/results", {
         state: {
@@ -230,7 +230,7 @@ export default function Home() {
           flexShrink: 0,
         }}
       >
-        <div 
+        <div
           onClick={() => navigate("/")}
           style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }}
         >
@@ -310,10 +310,10 @@ export default function Home() {
           />
 
           {nodesLoading && (
-             <div style={{ marginTop: "12px", display: "flex", alignItems: "center", gap: "8px", color: "var(--muted-foreground)", fontSize: "12px" }}>
-               <Loader2 className="animate-spin" size={14} />
-               Loading network nodes...
-             </div>
+            <div style={{ marginTop: "12px", display: "flex", alignItems: "center", gap: "8px", color: "var(--muted-foreground)", fontSize: "12px" }}>
+              <Loader2 className="animate-spin" size={14} />
+              Loading network nodes...
+            </div>
           )}
 
           {/* Quick Stats Preview */}
@@ -419,10 +419,10 @@ export default function Home() {
           </div>
 
           {/* Map */}
-          <div 
-            style={{ 
-              flex: 1, 
-              position: "relative", 
+          <div
+            style={{
+              flex: 1,
+              position: "relative",
               height: "100%",
               minHeight: "400px",
               borderRadius: "1.5rem",

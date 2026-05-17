@@ -52,33 +52,49 @@ export default function NodePicker({ isOpen, onClose, nodes, onSelect, type }: N
       onClick={onClose}
     >
       <div
-        className="w-full max-w-[440px] max-h-[85vh] sm:max-h-[80vh] bg-[var(--card)] rounded-3xl border border-[var(--border)] shadow-2xl flex flex-col overflow-hidden animate-scale-up"
+        className="w-full max-w-[440px] max-h-[85vh] sm:max-h-[80vh] rounded-2xl flex flex-col overflow-hidden animate-scale-up"
+        style={{
+          background: "#ffffff",
+          border: "1px solid rgba(17,73,49,0.12)",
+          boxShadow: "0 16px 48px rgba(0,0,0,0.15)",
+        }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-[var(--border)] flex items-center justify-between">
+        <div className="p-4 sm:p-5 flex items-center justify-between" style={{ borderBottom: "1px solid #e4ece7" }}>
           <div>
-            <h3 className="text-res-lg font-bold text-[var(--foreground)] m-0">
+            <h3 style={{ fontSize: "16px", fontWeight: 700, color: "#1a2e24", margin: 0 }}>
               Select {type === "start" ? "Departure" : "Destination"}
             </h3>
-            <p className="text-[11px] text-[var(--muted-foreground)] mt-0.5">
+            <p style={{ fontSize: "11px", color: "#6b8a7a", marginTop: "2px" }}>
               Search {nodes.length} available stations & stops
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[var(--surface-3)] border-none cursor-pointer flex items-center justify-center text-[var(--muted-foreground)] hover:bg-[var(--accent)] transition-colors"
+            style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "8px",
+              background: "#eef2f0",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#5a7568",
+            }}
           >
             <X size={16} />
           </button>
         </div>
 
         {/* Search & Filter */}
-        <div className="p-3 sm:p-4 bg-[var(--surface-2)] flex flex-col gap-2.5 sm:gap-3">
+        <div className="p-3 sm:p-4 flex flex-col gap-2.5 sm:gap-3" style={{ background: "#f8faf9" }}>
           <div style={{ position: "relative" }}>
             <Search
               size={18}
-              style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--muted-foreground)" }}
+              style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#6b8a7a" }}
             />
             <input
               autoFocus
@@ -86,7 +102,22 @@ export default function NodePicker({ isOpen, onClose, nodes, onSelect, type }: N
               placeholder="Search station or mode..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 sm:py-2.5 bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] text-xs sm:text-sm outline-none transition-all focus:border-[var(--neon)]"
+              style={{
+                width: "100%",
+                paddingLeft: "36px",
+                paddingRight: "16px",
+                paddingTop: "8px",
+                paddingBottom: "8px",
+                background: "#ffffff",
+                border: "1.5px solid #d4ddd8",
+                borderRadius: "10px",
+                color: "#1a2e24",
+                fontSize: "13px",
+                outline: "none",
+                transition: "border-color 0.15s",
+              }}
+              onFocus={(e) => e.currentTarget.style.borderColor = "#114931"}
+              onBlur={(e) => e.currentTarget.style.borderColor = "#d4ddd8"}
             />
           </div>
 
@@ -102,11 +133,20 @@ export default function NodePicker({ isOpen, onClose, nodes, onSelect, type }: N
               <button
                 key={f.id}
                 onClick={() => setFilterMode(f.id)}
-                className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-bold flex items-center gap-1.5 whitespace-nowrap cursor-pointer transition-all border"
                 style={{
-                  background: filterMode === f.id ? "var(--neon)" : "var(--surface-3)",
-                  color: filterMode === f.id ? "var(--background)" : "var(--muted-foreground)",
-                  borderColor: filterMode === f.id ? "var(--neon)" : "var(--border)"
+                  padding: "4px 10px",
+                  borderRadius: "999px",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  whiteSpace: "nowrap",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                  border: `1px solid ${filterMode === f.id ? "#114931" : "#d4ddd8"}`,
+                  background: filterMode === f.id ? "#114931" : "#ffffff",
+                  color: filterMode === f.id ? "#ffffff" : "#5a7568",
                 }}
               >
                 {f.icon}
@@ -130,27 +170,50 @@ export default function NodePicker({ isOpen, onClose, nodes, onSelect, type }: N
                     onSelect(node);
                     onClose();
                   }}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-2.5 flex items-center gap-3 bg-transparent border-none rounded-xl cursor-pointer text-left transition-all hover:bg-[var(--surface-3)]"
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    background: "transparent",
+                    border: "none",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                    textAlign: "left" as const,
+                    transition: "background 0.1s",
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "#eef2f0"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                 >
                   <div
-                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ background: `${color}15`, color: color }}
+                    style={{
+                      width: "36px",
+                      height: "36px",
+                      borderRadius: "10px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      background: `${color}15`,
+                      color: color,
+                    }}
                   >
                     {mode === "metro" || mode === "train" ? <Train size={16} /> : (mode === "bus" ? <Bus size={16} /> : (mode === "tram" ? <Train size={16} /> : <MapPin size={16} />))}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs sm:text-sm font-bold text-[var(--foreground)] truncate">
-                      {node.name} — <span className="opacity-70 font-medium">{mode === "metro" ? "Metro" : (mode === "train" ? "Train" : (mode === "tram" ? "Tram" : (node.mode || "Station")))}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: "13px", fontWeight: 700, color: "#1a2e24", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {node.name} — <span style={{ fontWeight: 500, color: "#5a7568" }}>{mode === "metro" ? "Metro" : (mode === "train" ? "Train" : (mode === "tram" ? "Tram" : (node.mode || "Station")))}</span>
                     </div>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[10px] font-bold capitalize" style={{ color: color }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "2px" }}>
+                      <span style={{ fontSize: "10px", fontWeight: 700, textTransform: "capitalize", color: color }}>
                         {mode === "metro" ? "Metro" : (mode === "train" ? "Train" : (mode === "tram" ? "Tram" : (node.mode || "Station")))}
                       </span>
-                      <span className="w-0.5 h-0.5 rounded-full bg-[var(--muted-foreground)] opacity-50" />
-                      <span className="text-[10px] text-[var(--muted-foreground)]">ID: {node.id}</span>
+                      <span style={{ width: "3px", height: "3px", borderRadius: "50%", background: "#b0c4b8" }} />
+                      <span style={{ fontSize: "10px", color: "#6b8a7a" }}>ID: {node.id}</span>
                     </div>
                   </div>
-                  <ChevronRight size={12} className="text-[var(--border)] shrink-0" />
+                  <ChevronRight size={12} style={{ color: "#b0c4b8", flexShrink: 0 }} />
                 </button>
               );
             })

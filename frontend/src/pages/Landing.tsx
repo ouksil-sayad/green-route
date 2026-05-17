@@ -9,8 +9,8 @@ export default function Landing() {
       style={{
         minHeight: "100vh",
         width: "100%",
-        backgroundColor: "#ffffff", // Light background
-        color: "#0f172a", // Dark gray/near black text
+        backgroundColor: "#F4F6F4",
+        color: "#1a2e24",
         position: "relative",
         overflow: "hidden",
         fontFamily: "Inter, system-ui, sans-serif",
@@ -36,7 +36,7 @@ export default function Landing() {
         style={{
           position: "absolute",
           top: "-10vh",
-          right: "-5%", // Shifted to the right to remove white space
+          right: "-5%",
           width: "60%",
           height: "120vh",
           transform: "scale(0.85)",
@@ -68,9 +68,9 @@ export default function Landing() {
             <style>
               {`
                 .node {
-                  fill: #3b82f6;
+                  fill: #114931;
                   transform-origin: center;
-                  filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.6));
+                  filter: drop-shadow(0 0 4px rgba(17, 73, 49, 0.5));
                 }
                 .node-anim-1 { animation: nodeFlicker 3.2s infinite ease-in-out; }
                 .node-anim-2 { animation: nodeFlicker 4.5s infinite ease-in-out 0.7s; }
@@ -79,7 +79,7 @@ export default function Landing() {
                 .node-anim-5 { animation: nodeFlicker 5.1s infinite ease-in-out 0.3s; }
                 .route-highlight {
                   stroke-dasharray: 12 88;
-                  filter: drop-shadow(0 0 5px rgba(59,130,246,0.8));
+                  filter: drop-shadow(0 0 5px rgba(17,73,49,0.6));
                   opacity: 0.9;
                 }
                 .anim-flow-1 { animation: pathFlow1 4.5s linear infinite; }
@@ -97,12 +97,12 @@ export default function Landing() {
                   100% { stroke-dashoffset: 0; }
                 }
                 @keyframes nodeFlicker {
-                  0% { r: 4px; opacity: 0.6; stroke-width: 0; stroke: rgba(59, 130, 246, 0); }
-                  20% { r: 6px; opacity: 1; stroke-width: 14px; stroke: rgba(59, 130, 246, 0.4); }
-                  23% { r: 5px; opacity: 0.8; stroke-width: 8px; stroke: rgba(59, 130, 246, 0.2); }
-                  26% { r: 7px; opacity: 1; stroke-width: 18px; stroke: rgba(59, 130, 246, 0.5); }
-                  60% { r: 5px; opacity: 0.85; stroke-width: 6px; stroke: rgba(59, 130, 246, 0.3); }
-                  100% { r: 4px; opacity: 0.6; stroke-width: 0; stroke: rgba(59, 130, 246, 0); }
+                  0% { r: 4px; opacity: 0.6; stroke-width: 0; stroke: rgba(17, 73, 49, 0); }
+                  20% { r: 6px; opacity: 1; stroke-width: 14px; stroke: rgba(17, 73, 49, 0.3); }
+                  23% { r: 5px; opacity: 0.8; stroke-width: 8px; stroke: rgba(17, 73, 49, 0.15); }
+                  26% { r: 7px; opacity: 1; stroke-width: 18px; stroke: rgba(17, 73, 49, 0.4); }
+                  60% { r: 5px; opacity: 0.85; stroke-width: 6px; stroke: rgba(17, 73, 49, 0.2); }
+                  100% { r: 4px; opacity: 0.6; stroke-width: 0; stroke: rgba(17, 73, 49, 0); }
                 }
               `}
             </style>
@@ -115,72 +115,38 @@ export default function Landing() {
             <path id="r6" pathLength="100" d="M 35% 35% L 55% 50% L 65% 45%" />
           </defs>
 
-          {/* Base lines connecting nodes softly */}
-          <use href="#r1" fill="none" stroke="#3b82f6" strokeWidth="1" strokeOpacity="0.2" />
-          <use href="#r2" fill="none" stroke="#3b82f6" strokeWidth="1" strokeOpacity="0.2" />
-          <use href="#r3" fill="none" stroke="#3b82f6" strokeWidth="1" strokeOpacity="0.2" />
-          <use href="#r4" fill="none" stroke="#3b82f6" strokeWidth="1" strokeOpacity="0.2" />
-          <use href="#r5" fill="none" stroke="#3b82f6" strokeWidth="1" strokeOpacity="0.2" />
-          <use href="#r6" fill="none" stroke="#3b82f6" strokeWidth="1" strokeOpacity="0.2" />
+          {/* Base lines */}
+          <use href="#r1" fill="none" stroke="#114931" strokeWidth="1" strokeOpacity="0.15" />
+          <use href="#r2" fill="none" stroke="#114931" strokeWidth="1" strokeOpacity="0.15" />
+          <use href="#r3" fill="none" stroke="#114931" strokeWidth="1" strokeOpacity="0.15" />
+          <use href="#r4" fill="none" stroke="#114931" strokeWidth="1" strokeOpacity="0.15" />
+          <use href="#r5" fill="none" stroke="#114931" strokeWidth="1" strokeOpacity="0.15" />
+          <use href="#r6" fill="none" stroke="#114931" strokeWidth="1" strokeOpacity="0.15" />
 
-          {/* Abstract Highlight Routes to simulate active traffic flow */}
-          <use href="#r1" fill="none" stroke="#60a5fa" strokeWidth="2.5" strokeLinecap="round" className="route-highlight anim-flow-1" />
-          <use href="#r2" fill="none" stroke="#60a5fa" strokeWidth="2.5" strokeLinecap="round" className="route-highlight anim-flow-2" />
-          <use href="#r3" fill="none" stroke="#60a5fa" strokeWidth="2.5" strokeLinecap="round" className="route-highlight anim-flow-3" />
-          <use href="#r4" fill="none" stroke="#60a5fa" strokeWidth="2.5" strokeLinecap="round" className="route-highlight anim-flow-4" />
-          <use href="#r5" fill="none" stroke="#60a5fa" strokeWidth="2.5" strokeLinecap="round" className="route-highlight anim-flow-5" />
-          <use href="#r6" fill="none" stroke="#60a5fa" strokeWidth="2.5" strokeLinecap="round" className="route-highlight anim-flow-6" />
+          {/* Highlight Routes */}
+          <use href="#r1" fill="none" stroke="#1a6b47" strokeWidth="2.5" strokeLinecap="round" className="route-highlight anim-flow-1" />
+          <use href="#r2" fill="none" stroke="#1a6b47" strokeWidth="2.5" strokeLinecap="round" className="route-highlight anim-flow-2" />
+          <use href="#r3" fill="none" stroke="#1a6b47" strokeWidth="2.5" strokeLinecap="round" className="route-highlight anim-flow-3" />
+          <use href="#r4" fill="none" stroke="#1a6b47" strokeWidth="2.5" strokeLinecap="round" className="route-highlight anim-flow-4" />
+          <use href="#r5" fill="none" stroke="#1a6b47" strokeWidth="2.5" strokeLinecap="round" className="route-highlight anim-flow-5" />
+          <use href="#r6" fill="none" stroke="#1a6b47" strokeWidth="2.5" strokeLinecap="round" className="route-highlight anim-flow-6" />
 
-          {/* Moving Dots / Traffic Nodes */}
-          <g fill="#ffffff" filter="drop-shadow(0 0 6px #3b82f6)">
-            <circle r="3">
-              <animateMotion dur="4.5s" repeatCount="indefinite"><mpath href="#r1" /></animateMotion>
-              <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="4.5s" repeatCount="indefinite" />
-            </circle>
-            <circle r="2.5">
-              <animateMotion dur="5.8s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#r2" /></animateMotion>
-              <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="5.8s" repeatCount="indefinite" />
-            </circle>
-            <circle r="3.5">
-              <animateMotion dur="3.8s" repeatCount="indefinite"><mpath href="#r3" /></animateMotion>
-              <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="3.8s" repeatCount="indefinite" />
-            </circle>
-            <circle r="2">
-              <animateMotion dur="5s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#r4" /></animateMotion>
-              <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="5s" repeatCount="indefinite" />
-            </circle>
-            <circle r="3">
-              <animateMotion dur="6.5s" repeatCount="indefinite"><mpath href="#r5" /></animateMotion>
-              <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="6.5s" repeatCount="indefinite" />
-            </circle>
-            <circle r="2.5">
-              <animateMotion dur="4.2s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#r6" /></animateMotion>
-              <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="4.2s" repeatCount="indefinite" />
-            </circle>
-            <circle r="2.5">
-              <animateMotion dur="7s" repeatCount="indefinite"><mpath href="#r1" /></animateMotion>
-              <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="7s" repeatCount="indefinite" />
-            </circle>
-            <circle r="2">
-              <animateMotion dur="6s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#r3" /></animateMotion>
-              <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="6s" repeatCount="indefinite" />
-            </circle>
-            {/* Extra Moving Dots */}
-            <circle r="2">
-              <animateMotion dur="4.8s" repeatCount="indefinite"><mpath href="#r2" /></animateMotion>
-              <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="4.8s" repeatCount="indefinite" />
-            </circle>
-            <circle r="2.5">
-              <animateMotion dur="5.5s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#r5" /></animateMotion>
-              <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="5.5s" repeatCount="indefinite" />
-            </circle>
-            <circle r="3">
-              <animateMotion dur="7.5s" repeatCount="indefinite"><mpath href="#r6" /></animateMotion>
-              <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="7.5s" repeatCount="indefinite" />
-            </circle>
+          {/* Moving Dots */}
+          <g fill="#ffffff" filter="drop-shadow(0 0 6px #114931)">
+            <circle r="3"><animateMotion dur="4.5s" repeatCount="indefinite"><mpath href="#r1" /></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="4.5s" repeatCount="indefinite" /></circle>
+            <circle r="2.5"><animateMotion dur="5.8s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#r2" /></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="5.8s" repeatCount="indefinite" /></circle>
+            <circle r="3.5"><animateMotion dur="3.8s" repeatCount="indefinite"><mpath href="#r3" /></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="3.8s" repeatCount="indefinite" /></circle>
+            <circle r="2"><animateMotion dur="5s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#r4" /></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="5s" repeatCount="indefinite" /></circle>
+            <circle r="3"><animateMotion dur="6.5s" repeatCount="indefinite"><mpath href="#r5" /></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="6.5s" repeatCount="indefinite" /></circle>
+            <circle r="2.5"><animateMotion dur="4.2s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#r6" /></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="4.2s" repeatCount="indefinite" /></circle>
+            <circle r="2.5"><animateMotion dur="7s" repeatCount="indefinite"><mpath href="#r1" /></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="7s" repeatCount="indefinite" /></circle>
+            <circle r="2"><animateMotion dur="6s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#r3" /></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="6s" repeatCount="indefinite" /></circle>
+            <circle r="2"><animateMotion dur="4.8s" repeatCount="indefinite"><mpath href="#r2" /></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="4.8s" repeatCount="indefinite" /></circle>
+            <circle r="2.5"><animateMotion dur="5.5s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#r5" /></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="5.5s" repeatCount="indefinite" /></circle>
+            <circle r="3"><animateMotion dur="7.5s" repeatCount="indefinite"><mpath href="#r6" /></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="7.5s" repeatCount="indefinite" /></circle>
           </g>
 
-          {/* Pulsing Intersections/Nodes */}
+          {/* Pulsing Nodes */}
           <circle cx="20%" cy="40%" className="node node-anim-1" />
           <circle cx="35%" cy="35%" className="node node-anim-2" />
           <circle cx="55%" cy="50%" className="node node-anim-3" />
@@ -199,7 +165,6 @@ export default function Landing() {
           <circle cx="85%" cy="70%" className="node node-anim-1" />
           <circle cx="10%" cy="25%" className="node node-anim-2" />
           <circle cx="40%" cy="85%" className="node node-anim-3" />
-          {/* New Nodes */}
           <circle cx="5%" cy="35%" className="node node-anim-4" />
           <circle cx="15%" cy="70%" className="node node-anim-5" />
           <circle cx="25%" cy="20%" className="node node-anim-1" />
@@ -223,7 +188,7 @@ export default function Landing() {
         </svg>
       </div>
 
-      {/* Responsive Map Label Overlay (Replacing the baked-in image text) */}
+      {/* Map Label Overlay */}
       <div
         className="fade-in-up-5"
         style={{
@@ -236,10 +201,10 @@ export default function Landing() {
           fontFamily: "Inter, sans-serif",
         }}
       >
-        <div style={{ fontSize: "20px", fontWeight: 400, color: "#94a3b8", letterSpacing: "4px" }}>
+        <div style={{ fontSize: "20px", fontWeight: 400, color: "#6b8a7a", letterSpacing: "4px" }}>
           ALGIERS, ALGERIA
         </div>
-        <div style={{ fontSize: "10px", fontWeight: 600, color: "#cbd5e1", letterSpacing: "2px", marginTop: "6px" }}>
+        <div style={{ fontSize: "10px", fontWeight: 600, color: "#8cc4a8", letterSpacing: "2px", marginTop: "6px" }}>
           CITY MAP DATA VISUALIZATION
         </div>
       </div>
@@ -256,7 +221,7 @@ export default function Landing() {
           padding: "0 40px",
         }}
       >
-        {/* Header with Admin Link */}
+        {/* Header */}
         <header
           style={{
             height: "80px",
@@ -268,25 +233,7 @@ export default function Landing() {
         >
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
              <img src={logoImg} alt="Logo" style={{ height: "40px", width: "auto" }} />
-             <span style={{ fontWeight: 700, letterSpacing: "1px", color: "#0f172a" }}>AlgierRoute</span>
-          </div>
-          <div 
-            onClick={() => navigate("/admin")}
-            style={{ 
-              fontSize: "12px", 
-              fontWeight: 600, 
-              color: "#64748b", 
-              cursor: "pointer",
-              letterSpacing: "1px",
-              padding: "8px 16px",
-              border: "1px solid #e2e8f0",
-              borderRadius: "4px",
-              transition: "all 0.2s"
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.borderColor = "#3b82f6"}
-            onMouseLeave={(e) => e.currentTarget.style.borderColor = "#e2e8f0"}
-          >
-            ADMIN ACCESS
+             <span style={{ fontWeight: 700, letterSpacing: "1px", color: "#114931" }}>AlgierRoute</span>
           </div>
         </header>
 
@@ -310,17 +257,17 @@ export default function Landing() {
               left: "-10px",
               fontSize: "120px",
               fontWeight: 800,
-              color: "rgba(0,0,0,0.03)",
+              color: "rgba(17, 73, 49, 0.04)",
               zIndex: -1,
               letterSpacing: "4px",
               pointerEvents: "none",
               userSelect: "none",
             }}
           >
-            Future
+            Green
           </div>
 
-          <h2 className="fade-in-up-1" style={{ fontSize: "14px", color: "#64748b", fontWeight: 500, letterSpacing: "2px", marginBottom: "16px", textTransform: "uppercase" }}>
+          <h2 className="fade-in-up-1" style={{ fontSize: "14px", color: "#5a7568", fontWeight: 500, letterSpacing: "2px", marginBottom: "16px", textTransform: "uppercase" }}>
             Smart Map Navigation
           </h2>
           
@@ -329,7 +276,7 @@ export default function Landing() {
             style={{
               fontSize: "clamp(48px, 8vw, 72px)",
               fontWeight: 700,
-              color: "#0f172a",
+              color: "#1a2e24",
               lineHeight: 1.1,
               marginBottom: "24px",
               letterSpacing: "-1px",
@@ -338,13 +285,13 @@ export default function Landing() {
             Algiers <br />Route
           </h1>
 
-          <div className="fade-in-up-3" style={{ width: "40px", height: "3px", backgroundColor: "#3b82f6", marginBottom: "32px" }} />
+          <div className="fade-in-up-3" style={{ width: "40px", height: "3px", backgroundColor: "#114931", marginBottom: "32px" }} />
 
           <p
             className="fade-in-up-3"
             style={{
               fontSize: "16px",
-              color: "#475569",
+              color: "#5a7568",
               lineHeight: 1.8,
               marginBottom: "48px",
               maxWidth: "420px",
@@ -358,27 +305,27 @@ export default function Landing() {
             onClick={() => navigate("/user")}
             style={{
               padding: "18px 40px",
-              backgroundColor: "#3b82f6", // Primary Blue
+              backgroundColor: "#114931",
               color: "#ffffff",
               border: "none",
-              borderRadius: "4px",
+              borderRadius: "8px",
               fontSize: "14px",
               fontWeight: 700,
               letterSpacing: "1.5px",
               cursor: "pointer",
               width: "fit-content",
-              boxShadow: "0 4px 14px rgba(0, 0, 0, 0.05)",
+              boxShadow: "0 4px 14px rgba(17, 73, 49, 0.15)",
               transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#2563eb";
+              e.currentTarget.style.backgroundColor = "#0d3a26";
               e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 6px 20px rgba(0, 0, 0, 0.08)";
+              e.currentTarget.style.boxShadow = "0 6px 20px rgba(17, 73, 49, 0.2)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#3b82f6";
+              e.currentTarget.style.backgroundColor = "#114931";
               e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 4px 14px rgba(0, 0, 0, 0.05)";
+              e.currentTarget.style.boxShadow = "0 4px 14px rgba(17, 73, 49, 0.15)";
             }}
           >
             GET STARTED
